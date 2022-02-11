@@ -1,0 +1,125 @@
+#!/bin/bash
+
+# ------------------------------ #
+# Global Variable Initialization #
+# ------------------------------ #
+
+app_name="input-remapper-manager"
+remapper_dir=~/.config/input-remapper
+conf_file="$remapper_dir/$app_name.conf"
+log_file="$remapper_dir/$app_name.log"
+presets_dir="$remapper_dir/presets"
+
+if [ -f "$log_file" ]; then
+    rm "$log_file"
+fi
+
+echo "starting log" >> "$log_file"
+
+if [ ! -f "$conf_file" ]; then
+    echo "configuration file does not exist" >> "$log_file"
+    touch "$conf_file"
+    echo "exampleWindowClass=exampleProfileName" >> "$conf_file"
+    echo "default=Default" >> "$conf_file"
+    echo "$app_name.conf created in $remapper_dir" >> "$log_file"
+else
+    echo "configuration file found" >> "$log_file"
+fi
+
+declare -A profile_table
+declare -A class_table
+declare -A device_table
+declare -A active_profiles
+
+LoadConfig ()
+{
+    echo "loading configuration..." >> "$log_file"
+
+    for i in $(cat < "$conf_file"); do
+        profile_table["${i%*=*}"]="${i#*=*}"
+        class_table["${i#*=*}"]="${i%*=*}"
+    done
+
+    echo -e "done!\n" >> "$log_file"
+    #echo "Profile Table:" >> "$log_file"
+
+    #for i in "${!profile_table[@]}"; do
+        #echo "Class:$i | Profile:${profile_table[$i]}" >> "$log_file"
+    #done
+
+    #echo "" >> "$log_file"
+}
+
+SetDeviceTable ()
+{
+    echo "populating device table..." >> "$log_file"
+    device_table=()
+    while IFS=  read -r -d $'\n'; do
+        device_table["$REPLY"]=1
+    done < <(input-remapper-control --list)
+
+    while IFS=  read -r -d $'\0'; do
+        REPLY="${REPLY#*/presets/*}"
+        if [ "${device_table[$REPLY]}" != 1 -a "$REPLY" != "presets" ]; then
+            device_table["$REPLY"]=0
+        fi
+    done < <(find $presets_dir -type d -print0)
+
+    echo "done!" >> "$log_file"
+}
+
+SetProfiles ()
+{
+    for i in "${!device_table[@]}"; do
+        if [ "${device_table[$i]}"  == 1 ]; then
+            if [ -f "$presets_dir/$i/$1.json" ]; then
+                echo -e "\nsetting device:$i --> profile:$1\n" >> "$log_file"
+                input-remapper-control --command start --device "$i" --preset "$1" &>> "$log_file"
+                active_profiles[$i]="$1"
+                echo "" >> "$log_file"
+            else
+                #echo "profile:$1 not found for device:$i" >> "$log_file"
+                if [ "${active_profiles[$i]}" != "${profile_table[default]}" ]; then
+                    if [ "$1" != "${profile_table[default]}" ]; then
+                        #echo "searching for default profile..." >> "$log_file"
+                        if [ -f "$presets_dir/$i/${profile_table[default]}.json" ]; then
+                            #echo -e "found!\n" >> "$log_file"
+                            echo -e "\nsetting device:$i --> profile:${profile_table[default]}\n" >> "$log_file"
+                            input-remapper-control --command start --device "$i" --preset "${profile_table[default]}" &>> "$log_file"
+                            active_profiles[$i]="${profile_table[default]}"
+                            #echo "device:$i | active profile:${active_profiles[$i]}" >> "$log_file"
+                            echo "" >> "$log_file"
+                        #else
+                            #echo -e "not found\n" >> "$log_file"
+                            #echo -e "skipping\n" >> "$log_file"
+                            #active_profiles[$i]=""
+                        fi
+                    #else
+                        #echo "device:$i is not configured with a default profile" >> "$log_file"
+                        #echo -e "skipping\n" >> "$log_file"
+                        #active_profiles[$i]=""
+                    fi
+                else
+                    echo -e "profile:${profile_table[default]} already active on device:$i\n"  >> "$log_file"
+                fi
+            fi
+        #else
+            #echo "device:$i not connected" >> "$log_file"
+            #echo -e "skipping\n" >> "$log_file"
+            #active_profiles[$i]=""
+        fi
+    done
+}
+
+while [ true ]; do
+    active_win=`cat /proc/$(xdotool getwindowpid $(xdotool getwindowfocus))/comm`
+    if [ "$active_win" != "$last_win" ]; then
+        echo -e "\nactive window has changed" >> "$log_file"
+        LoadConfig
+        SetDeviceTable
+        echo "active window:$active_win | profile name:${profile_table[$active_win]}" >> "$log_file"
+        SetProfiles "${profile_table[$active_win]}"
+        last_win="$active_win"
+    fi
+    sleep .5s
+done
