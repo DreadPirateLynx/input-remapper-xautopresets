@@ -43,7 +43,7 @@ if [ -d "$working_dir" ]; then
 
     # Copy script to user's local /bin directory
     echo "Copying automation script ($parent_app-$app_name) to $script_dir..."
-    cp -r .local/ ~/
+    cp -r local/bin/ ~/.local
     echo "Done!"
     echo "Making executable..."
     chmod u+x "$script_dir/$parent_app-$app_name"
@@ -58,7 +58,7 @@ if [ -d "$working_dir" ]; then
 
     #Copy service file to user's systemd service folder
     echo "Copying .service file ($parent_app-$app_name.service) to $service_dir..."
-    cp -r .config/ ~/
+    cp -r config/systemd/ ~/.config
     echo "Done!"
 
     #Enable and start service

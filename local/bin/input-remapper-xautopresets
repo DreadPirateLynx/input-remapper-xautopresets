@@ -23,7 +23,7 @@ declare -A active_presets
 # --------------- #
 
 echo "$(date +%D) | $(date +%T):  input-remapper-$app_name v$version" > "$app_log"
-echo "$(date +%D) | $(date +%T):  $desc" > "$app_log"
+echo "$(date +%D) | $(date +%T):  $desc" >> "$app_log"
 
 while IFS=  read -r -d $'\0'; do
     if [ -f "$REPLY/$app_name.log" ]; then
