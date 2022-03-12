@@ -45,8 +45,9 @@ exampleWindowclass2=Example Preset Name 1
 example*=preset1
 *Window*=preset2
 exampleWindow*=preset3
-exampleWindowClass?=preset4
-exampleWindowClass8=preset5
+*WindowClass4=preset4
+exampleWindowClass?=preset5
+exampleWindowClass8=preset6
 ```
  A default global file is generated during installation or if it can't be found. It contains the following:  
 ```
