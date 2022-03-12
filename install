@@ -1,0 +1,86 @@
+#!/bin/bash
+
+parent_app=input-remapper
+app_name=xautopresets
+script_dir=$HOME/.local/bin
+service_dir=$HOME/.config/systemd/user
+working_dir=$HOME/.config/$parent_app
+# log_file=./install.log
+default_class=_default
+input_remapper_ui=Input-remapper-gtk
+bypass_preset=_Bypass
+
+# if [ -f "$log_file" ]; then
+#     rm $log_file
+#     touch $log_file
+# fi
+
+# Check if input-remapper .config directory exists
+if [ -d "$working_dir" ]; then
+
+    # Check if previously installed version of xautopresets exists
+    if [ -f "$service_dir/$parent_app-$app_name.service" ] || [ -f "$script_dir/$parent_app-$app_name" ]; then
+        echo "Previously installed version of $parent_app-$app_name detected"
+
+        (systemctl --user is-active "$parent_app-$app_name.service" > /dev/null &&
+            echo "Previous version of service is running" &&
+            echo "Stopping..." &&
+            (systemctl --user stop "$parent_app-$app_name.service" &&
+                echo "Done!") ||
+            (echo "Failed to stop service!" &&
+                echo "Aborting Installation!" &&
+                exit))
+
+        (systemctl --user is-enabled "$parent_app-$app_name.service" > /dev/null  &&
+            echo "Previous version of service is enabled" &&
+            echo "Disabling..." &&
+            (systemctl --user disable "$parent_app-$app_name.service"
+                echo "Done!") ||
+            (echo "Failed to disable service!" &&
+                echo "Aborting Installation!" &&
+                exit))
+    fi
+
+    # Copy script to user's local /bin directory
+    echo "Copying automation script ($parent_app-$app_name) to $script_dir..."
+    cp -r .local/ ~/
+    echo "Done!"
+    echo "Making executable..."
+    chmod u+x "$script_dir/$parent_app-$app_name"
+
+    # Create global configuration file and populate with default values if one doesn't already exist
+    if [ ! -f $working_dir/$app_name.conf ]; then
+        echo "Creating global configuration file ($app_name.conf) in $working_dir..."
+        touch $working_dir/$app_name.conf
+        echo -e "$default_class=$bypass_preset\n$input_remapper_ui=$bypass_preset" > "$working_dir/$app_name.conf"
+        echo "Done!"
+    fi
+
+    #Copy service file to user's systemd service folder
+    echo "Copying .service file ($parent_app-$app_name.service) to $service_dir..."
+    cp -r .config/ ~/
+    echo "Done!"
+
+    #Enable and start service
+    echo "Reloading systemd daemon..."
+    (systemctl --user daemon-reload &&
+        echo "Done!") ||
+    (echo "Failed to reload daemon!" &&
+        echo "Installation Failed!" &&
+        exit)
+    (echo "Enabling service to start at user login..."
+    systemctl --user enable "$parent_app-$app_name.service" &&
+        echo "Done!") ||
+    (echo "Failed to enable service!" &&
+        echo "Installation Failed!" &&
+        exit)
+    echo "Starting service..."
+    (systemctl --user start "$parent_app-$app_name.service"
+        echo "Done!") ||
+    (echo "Failed to start daemon!" &&
+        echo "Installation Failed!" &&
+        exit)
+    echo "Installation Complete!"
+else
+    echo "Could not find $parent_app. Aborting installation."
+fi
