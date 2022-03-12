@@ -5,7 +5,7 @@
 # ------------------------------ #
 
 app_name=${0#*input-remapper-*}
-version="0.9.0"
+version="0.9.1"
 desc="Automatic input-remapper preset manager for systems with access to xdotools"
 app_dir=~/.config/input-remapper
 global_conf="$app_dir/$app_name.conf"
@@ -23,7 +23,7 @@ declare -A active_presets
 # --------------- #
 
 echo "$(date +%D) | $(date +%T):  input-remapper-$app_name v$version" > "$app_log"
-echo "$(date +%D) | $(date +%T):  $desc" >> "$app_log"
+echo -e "$(date +%D) | $(date +%T):  $desc\n" >> "$app_log"
 
 while IFS=  read -r -d $'\0'; do
     if [ -f "$REPLY/$app_name.log" ]; then
@@ -260,23 +260,17 @@ while [ true ]; do
             echo "$(date +%D) | $(date +%T):  Active Window Class: $active_win_class" >> "$app_log"
             echo -e "$(date +%D) | $(date +%T):  Active Window Title: $active_win_title\n" >> "$app_log"
 
-            # Compare a list of devices controlled by input-remapper...
-            while IFS=  read -r -d $'\0'; do
-                reply=${REPLY#*/presets/*}
+            # Run through a list of connected devices...
+            while IFS=  read -r -d $'\n'; do
 
-                # ...with a list of connected devices
-                while IFS=  read -r -d $'\n'; do
+                # ...and if the device has a configuration folder...
+                if [ -d "$app_dir/presets/$REPLY" ]; then
 
-                    # And if a device appears in both lists...
-                    if [ "$REPLY" == "$reply" ]; then
-
-                        # ...configure the device for the active window
-                        echo "$(date +%D) | $(date +%T):  Configuring Device:$REPLY" >> "$app_log"
-                        LoadConfig "$REPLY"&
-                        break
-                    fi
-                done < <(input-remapper-control --list)
-            done < <(find "$app_dir/presets" -type d -print0)
+                    # ...configure the device for the active window
+                    echo "$(date +%D) | $(date +%T):  Configuring Device:$REPLY" >> "$app_log"
+                    LoadConfig "$REPLY"&
+                fi
+            done < <(input-remapper-control --list)
 
             # This is the last time the active window changed
             last_win_class="$active_win_class"
