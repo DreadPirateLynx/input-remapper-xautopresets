@@ -75,8 +75,8 @@ Use `xdotool selectwindow getwindowname` (or look at the titlebar) to get window
 _default=FireDragon
 *- YouTube -*=Media
 ```
-In this example, when using the FireDragon web browser (Class Name `firedragon`), any time a browser tab which includes the string  
-`- YouTube -` is active, the `Media.json` will be enabled on this device. For all other tabs, the `FireDragon.json` will be enabled
+In this example, when using the FireDragon web browser (Class Name `firedragon`), any time a browser tab whose title includes the string  
+`- YouTube -` is active, `Media.json` will be enabled on this device. For all other tabs, `FireDragon.json` will be enabled
 
 ### input-remapper-xautopresets.service
 You can modify `Environment=DISPLAY=:0` to limit which displays the service monitors. Avoid other modifications unless you know what you're doing.  
