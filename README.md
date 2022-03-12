@@ -53,10 +53,14 @@ exampleWindowClass8=preset5
 _default=_Bypass
 Input-remapper-gtk=_Bypass
 ```  
-`_default` is a window class used internally by the script. The preset assigned to this class will be loaded any time no other preset is configured, or if the configured preset cannot be located.  
+`_default` is a window class used internally by the script. The preset assigned to this class will be loaded any time no other preset is configured, or if the configured preset cannot be located. You can change the preset assigned here to whatever you want.  
+  
 `_Bypass` is likewise a preset name used internally by the script. This is the preset that will disable input-remapper injection, and will be used in place of the `_default` preset if it can't be found or isn't configured  
+  
 `Input-remapper-gtk` is the window class name for `input-remapper`'s gui configuration tool. Injection needs to be stopped to make changes, so this seemed appropriate. Feel free to change.  
+  
 The device-specific file is higher priority than the global one. No settings in global file will ever apply to any device with its own file.  
+  
 Use `xdotool selectwindow getwindowclassname` to get window class names for your applications
 
 ### [Class Name].conf
@@ -74,5 +78,6 @@ _default=FireDragon
 In this example, when using the FireDragon web browser (Class Name firedragon), any time a browser tab which includes the string "- YouTube -" is active, the "Media" preset will be enabled on this device. For all other tabs, the "FireDragon" preset will be enabled
 
 ### input-remapper-xautopresets.service
-You can modify `Environment=DISPLAY=:0` to limit which displays the service monitors. Avoid other modifications unless you know what you're doing.
+You can modify `Environment=DISPLAY=:0` to limit which displays the service monitors. Avoid other modifications unless you know what you're doing.  
+  
 Use `systemctl --user daemon-reload` every time you make changes to `input-remapper-xautopresets.service` 
