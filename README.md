@@ -40,13 +40,13 @@ exampleWindowclass1=Example Preset Name 1
 exampleWindowclass2=Example Preset Name 1
 *xampleWindowclass3=Example Pr?set Name 2
 ```
-`*`/`?` wildcard characters and spaces are valid. Quotation marks, as well asleading and trailing spaces should only be included if actually part of the class/file name.
+`*`/`?` wildcard characters and spaces are valid. Quotation marks, as well as leading and trailing spaces should only be included if actually part of the class/file name.
 A default global file is generated during installation or if it can't be found. It contains the following:  
 ```
 _default=_Bypass
 Input-remapper-gtk=_Bypass
 ```  
-`_default` is a window class used internally by the script. This is the preset that will be loaded any time no other preset is configured, or if the configured preset cannot be located.  
+`_default` is a window class used internally by the script. The preset assigned to this class will be loaded any time no other preset is configured, or if the configured preset cannot be located.  
 `_Bypass` is likewise a preset name used internally by the script. This is the preset that will disable input-remapper injection, and will be used in place of the `_default` preset if it can't be found or isn't configured  
 `Input-remapper-gtk` is the window class name for `input-remapper`'s gui configuration tool. Injection needs to be stopped to make changes, so this seemed appropriate. Feel free to change.  
 The device-specific file is higher priority than the global one. No settings in global file will ever apply to any device with its own file.  
