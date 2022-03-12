@@ -40,7 +40,7 @@ exampleWindowclass1=Example Preset Name 1
 exampleWindowclass2=Example Preset Name 1
 *xampleWindowclass3=Example Pr?set Name 2
 ```
-`*`/`?` wildcard characters and spaces are valid. Quotation marks, as well as leading and trailing spaces should only be included if actually part of the class/file name.
+`*`/`?` wildcard characters and spaces are valid. Quotation marks, as well as leading and trailing spaces should only be included if actually part of the class/file name. Entries lower in the list will override earlier ones, so you can use wildcards early for more general matches, and get more specific the further into the configuration file you go for special cases  
 A default global file is generated during installation or if it can't be found. It contains the following:  
 ```
 _default=_Bypass
