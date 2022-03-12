@@ -1,0 +1,11 @@
+[Unit]
+Description=Automatic input-remapper preset manager for systems with access to xdotools
+PartOf=graphical-session.target
+After=input-remapper.service
+
+[Service]
+Environment=DISPLAY=:0
+ExecStart=%h/.local/bin/input-remapper-xautopresets
+
+[Install]
+WantedBy=default.target
