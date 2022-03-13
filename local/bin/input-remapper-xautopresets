@@ -167,7 +167,7 @@ LoadConfig () # Finds appropriate preset for active window. Requires single devi
                     REPLY_=${REPLY%*=*}
                     _REPLY=${REPLY#*=*}
                     echo "$REPLY_=$_REPLY" >> "$dev_log"
-                    if [[ $active_win_title == $REPLY_ ]]; then
+                    if [[ $active_win_class == $REPLY_ ]]; then
                         target_preset=$_REPLY
                     else
                         if [[ $default_class == $REPLY_ ]]; then
@@ -184,7 +184,7 @@ LoadConfig () # Finds appropriate preset for active window. Requires single devi
                 REPLY_=${REPLY%*=*}
                 _REPLY=${REPLY#*=*}
                 echo "$REPLY_=$_REPLY" >> "$dev_log"
-                if [[ $active_win_title == $REPLY_ ]]; then
+                if [[ $active_win_class == $REPLY_ ]]; then
                     target_preset=$_REPLY
 
                 else
