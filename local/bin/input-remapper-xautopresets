@@ -5,10 +5,11 @@
 # ------------------------------ #
 
 app_name=${0#*input-remapper-*}
-version="0.9.3"
+version="0.9.4"
 desc="Automatic input-remapper preset manager for systems with access to xdotools"
 app_dir=~/.config/input-remapper
 global_conf="$app_dir/$app_name.conf"
+global_class_conf="$app_dir/classes/$active_win_class.conf"
 app_log="$app_dir/$app_name.log"
 default_class=_default
 input_remapper_ui=Input-remapper-gtk
@@ -24,15 +25,30 @@ declare -A active_presets
 
 TimeStamp () # Prefixes provided string ($1) with timestamp and writes to provided log file ($2)
 {
-    echo -e "$(date +%D) | $(date +%T):  $1" >> "$2"
+    E=
+    local OPTIND option
+    while getopts ":e" option; do
+        echo "$option" >> "$2"
+        case "${OPTARG}" in
+            e)  E=1
+                echo test >> "$2"
+                ;;
+        esac
+    done
+
+    if [ "$E" == 1 ]; then
+        echo -e "$(date +%D) | $(date +%T):  $1" >> "$2"
+    else
+        echo "$(date +%D) | $(date +%T):  $1" >> "$2"
+    fi
 }
 
-echo "$(date +%D) | $(date +%T):  input-remapper-$app_name v$version" > "$app_log"
-echo -e "$(date +%D) | $(date +%T):  $desc\n" >> "$app_log"
+TimeStamp "input-remapper-$app_name v$version" "$app_log"
+TimeStamp -e "$desc\n" "$app_log"
 
 while IFS=  read -r -d $'\0'; do
     if [ -f "$REPLY/$app_name.log" ]; then
-        echo "$(date +%D) | $(date +%T):  Device:"${REPLY#*/presets/*} > "$REPLY/$app_name.log"
+        TimeStamp "Device:["${REPLY#*/presets/*}"]" "$REPLY/$app_name.log"
     fi
 done < <(find "$app_dir/presets" -type d -print0)
 
@@ -54,69 +70,69 @@ SetPreset () # Applies preset to device. Requires device name, target preset nam
 #     echo ${active_presets[$dev_name]}" ?= $target_preset"
 
     if [ "${active_presets[$dev_name]}" != "$target_preset" ]; then
-        echo -e "$(date +%D) | $(date +%T):  Preset change required\n" >> "$dev_log"
+        TimeStamp -e "Preset change required\n" "$dev_log"
 
         if [ "$target_preset" != "$bypass_preset" ]; then
-            echo "$(date +%D) | $(date +%T):  Searching for $target_preset.json..." >> "$dev_log"
+            TimeStamp "Searching for $target_preset.json..." "$dev_log"
 
             if [ ! -f "$dev_dir/$target_preset.json" ]; then
-                echo -e "$(date +%D) | $(date +%T):  Not found!\n" >> "$dev_log"
-                echo "$(date +%D) | $(date +%T):  Searching for $default_preset.json..." >> "$dev_log"
+                TimeStamp -e "Not found!\n" "$dev_log"
+                TimeStamp "Searching for $default_preset.json..." "$dev_log"
 
                 if [ ! -f "$dev_dir/$default_preset.json" ]; then
-                    echo -e "$(date +%D) | $(date +%T):  Not found!\n" >> "$dev_log"
-                    echo "$(date +%D) | $(date +%T):  No appropriate preset found. Checking injection status of Device:$dev_name..." | tee --append "$dev_log" "$app_log" > /dev/null
+                    TimeStamp -e "Not found!\n" "$dev_log"
+                    TimeStamp "No appropriate preset found. Checking injection status of Device:[$dev_name]..." | tee --append "$dev_log" "$app_log" > /dev/null
 
                     if [ "${active_presets[$dev_name]}" != "$bypass_preset" ]; then
                         #stop input-remapper injection
-                        echo -e "$(date +%D) | $(date +%T):  Stopping injection on Device:$dev_name\n" | tee --append "$dev_log" "$app_log" > /dev/null
+                        echo -e "$(date +%D) | $(date +%T):  Stopping injection on Device:[$dev_name]\n" | tee --append "$dev_log" "$app_log" > /dev/null
                         input-remapper-control --command stop --device "$dev_name" &>> "$dev_log"
                         active_preset="$bypass_preset"
 
                     else
-                        echo "$(date +%D) | $(date +%T):  Injection inactive. No action required" | tee --append "$dev_log" "$app_log" > /dev/null
+                        echo -e "$(date +%D) | $(date +%T):  Injection inactive. No action required\n" | tee --append "$dev_log" "$app_log" > /dev/null
                         active_preset="$bypass_preset"
                     fi
 
                 else
-                    echo -e "$(date +%D) | $(date +%T):  Found!\n" >> "$dev_log"
+                    TimeStamp -e "Found!\n" "$dev_log"
 
                     if [ "${active_presets[$dev_name]}" != "$default_preset" ]; then
                         #enable default preset
-                        echo -e "$(date +%D) | $(date +%T):  Setting Device:$dev_name to Preset:$default_preset\n" | tee --append "$dev_log" "$app_log" > /dev/null
+                        echo -e "$(date +%D) | $(date +%T):  Setting Device:[$dev_name] to Preset:$default_preset\n" | tee --append "$dev_log" "$app_log" > /dev/null
                         input-remapper-control --command start --device "$dev_name" --preset "$default_preset" &>> "$dev_log"
                         active_preset="$default_preset"
 
                     else
-                        echo "$(date +%D) | $(date +%T):  Preset:$default_preset is already active on Device:$dev_name" | tee --append "$dev_log" "$app_log" > /dev/null
+                        echo -e "$(date +%D) | $(date +%T):  Preset:$default_preset is already active on Device:[$dev_name]\n" | tee --append "$dev_log" "$app_log" > /dev/null
                         active_preset="$default_preset"
                     fi
                 fi
 
             else
-                echo -e "$(date +%D) | $(date +%T):  Found!\n" >> "$dev_log"
+                TimeStamp -e "Found!\n" "$dev_log"
                 #enable app-specific preset
-                echo -e "$(date +%D) | $(date +%T):  Setting Device:$dev_name to Preset:$target_preset\n" | tee --append "$dev_log" "$app_log" > /dev/null
+                echo -e "$(date +%D) | $(date +%T):  Setting Device:[$dev_name] to Preset:$target_preset\n" | tee --append "$dev_log" "$app_log" > /dev/null
                 input-remapper-control --command start --device "$dev_name" --preset "$target_preset" &>> "$dev_log"
                 active_preset="$target_preset"
             fi
 
         else
             #stop input-remapper injection
-            echo -e "$(date +%D) | $(date +%T):  Stopping injection on Device:$dev_name\n" | tee --append "$dev_log" "$app_log" > /dev/null
+            echo -e "$(date +%D) | $(date +%T):  Stopping injection on Device:[$dev_name]\n" | tee --append "$dev_log" "$app_log" > /dev/null
             input-remapper-control --command stop --device "$dev_name" &>> "$dev_log"
             active_preset="$bypass_preset"
         fi
 
     else
-        echo "$(date +%D) | $(date +%T):  Preset:$target_preset is already active on Device:$dev_name" | tee --append "$dev_log" "$app_log" > /dev/null
+        echo -e "$(date +%D) | $(date +%T):  Preset:$target_preset is already active on Device:[$dev_name]\n" | tee --append "$dev_log" "$app_log" > /dev/null
         active_preset="$target_preset"
     fi
     echo -e "\n\n$(date +%D) | $(date +%T):  ------------------------------------------------------------------\n\n" >> "$dev_log"
-    echo $active_preset > "$dev_dir/active"
+    echo "$active_preset"
 }
 
-SetTargets () # Takes active window [class|title], .conf and .log file as parameters. Iterates through .conf file and sets target/default presets
+SetTargets () # Takes active window [class|title], .conf and .log file as parameters. Iterates through .conf file and sets target/default presets by reference
 {
     declare -a targets
     active_window="$1"
@@ -141,8 +157,7 @@ SetTargets () # Takes active window [class|title], .conf and .log file as parame
     done < <(cat < "$conf_file")
     echo "" >> "$dev_log"
     TimeStamp "Target Preset: $target_preset" "$dev_log"
-    TimeStamp "Default Preset: $default_preset\n" "$dev_log"
-#     echo "${targets[@]}"
+    TimeStamp -e "Default Preset: $default_preset\n" "$dev_log"
 }
 
 LoadConfig () # Finds appropriate preset for active window. Requires single device name as parameter
@@ -154,21 +169,22 @@ LoadConfig () # Finds appropriate preset for active window. Requires single devi
     dev_conf="$dev_dir/$app_name.conf"
     dev_log="$app_dir/presets/$dev_name/$app_name.log"
     dev_class_conf="$dev_dir/$active_win_class.conf"
-    global_class_conf="$app_dir/$active_win_class.conf"
 
     target_preset=_NOTSET
     default_preset=_NOTSET
 
-    echo "$(date +%D) | $(date +%T):  Active window has changed" >> "$dev_log"
-    echo "$(date +%D) | $(date +%T):  Active Window Class: $active_win_class" >> "$dev_log"
-    echo "$(date +%D) | $(date +%T):  Active Window Title: $active_win_title" >> "$dev_log"
+    local -n active_preset_ref="$2"
+
+    TimeStamp "Active window has changed" "$dev_log"
+    TimeStamp "Active Window Class: $active_win_class" "$dev_log"
+    TimeStamp "Active Window Title: $active_win_title" "$dev_log"
 
     TimeStamp "Searching for global configuration file..." "$dev_log"
     if [ -f "$global_conf" ]; then
-        TimeStamp "Found!\n" "$dev_log"
+        TimeStamp -e "Found!\n" "$dev_log"
         SetTargets "$active_win_class" "$global_conf" "$dev_log" target_preset default_preset
     else
-        TimeStamp "Not found!\n" "$dev_log"
+        TimeStamp -e "Not found!\n" "$dev_log"
         TimeStamp "Generating default global configuration file..." "$dev_log"
         touch "$global_conf"
         echo -e "$default_class=$bypass_preset\n$input_remapper_ui=$bypass_preset" > "$global_conf"
@@ -176,42 +192,42 @@ LoadConfig () # Finds appropriate preset for active window. Requires single devi
         target_preset=$default_preset
         TimeStamp "Done!" "$dev_log"
         TimeStamp "Target Preset: $target_preset" "$dev_log"
-        TimeStamp "Default Preset: $default_preset\n" "$dev_log"
+        TimeStamp -e "Default Preset: $default_preset\n" "$dev_log"
     fi
 
     TimeStamp "Searching for device-specific configuration file..." "$dev_log"
     if [ -f "$dev_conf" ]; then
-        TimeStamp "Found!\n" "$dev_log"
+        TimeStamp -e "Found!\n" "$dev_log"
         SetTargets "$active_win_class" "$dev_conf" "$dev_log" target_preset default_preset
     else
-        TimeStamp "Not found!\n" "$dev_log"
+        TimeStamp -e "Not found!\n" "$dev_log"
     fi
 
     TimeStamp "Searching for global class-specific configuration file..." "$dev_log"
     if [ -f "$global_class_conf" ]; then
-        TimeStamp "Found!\n" "$dev_log"
+        TimeStamp -e "Found!\n" "$dev_log"
         SetTargets "$active_win_title" "$global_class_conf" "$dev_log" target_preset default_preset
     else
-        TimeStamp "Not found!\n" "$dev_log"
+        TimeStamp -e "Not found!\n" "$dev_log"
     fi
 
     TimeStamp "Searching for device-and-class-specific configuration file..." "$dev_log"
     if [ -f "$dev_class_conf" ]; then
 
-        TimeStamp "Found!\n" "$dev_log"
+        TimeStamp -e "Found!\n" "$dev_log"
         SetTargets "$active_win_title" "$dev_class_conf" "$dev_log" target_preset default_preset
     else
-        TimeStamp "Not found!\n" "$dev_log"
+        TimeStamp -e "Not found!\n" "$dev_log"
     fi
 
     [ "$default_preset" == _NOTSET ] && default_preset="$bypass_preset"
     [ "$target_preset" == _NOTSET ] && target_preset="$default_preset"
 
-    echo "$(date +%D) | $(date +%T):  Active Preset: ${active_presets[$dev_name]}" >> "$dev_log"
-    echo "$(date +%D) | $(date +%T):  Target Preset: $target_preset" >> "$dev_log"
-    echo "$(date +%D) | $(date +%T):  Default Preset: $default_preset" >> "$dev_log"
+    TimeStamp "Active Preset: ${active_presets[$dev_name]}" "$dev_log"
+    TimeStamp "Target Preset: $target_preset" "$dev_log"
+    TimeStamp "Default Preset: $default_preset" "$dev_log"
 
-    SetPreset "$dev_name" "$target_preset" "$default_preset"
+    active_preset_ref=$(SetPreset "$dev_name" "$target_preset" "$default_preset")
 }
 
 # TrimLogs ()
@@ -223,7 +239,7 @@ LoadConfig () # Finds appropriate preset for active window. Requires single devi
 #
 #         if [ $(wc -c < "$app_log") -ge $max_size ]; then
 #
-#             echo -e "$(date +%D) | $(date +%T):  Log has exceeded maximum size. Trimming...\n" >> "$app_log"
+#             TimeStamp -e "Log has exceeded maximum size. Trimming...\n" >> "$app_log"
 #             tail -c "$min_size" "$app_log" > "$app_dir/tmp.log"
 #             mv "$app_dir/tmp.log" "$app_log"
 #
@@ -237,7 +253,7 @@ LoadConfig () # Finds appropriate preset for active window. Requires single devi
 #
 #                 if [ $(wc -c < "$dev_log") -ge $max_size ]; then
 #
-#                     echo -e "$(date +%D) | $(date +%T):  Log has exceeded maximum size. Trimming...\n" >> "$dev_log"
+#                     TimeStamp -e "Log has exceeded maximum size. Trimming...\n" >> "$dev_log"
 #                     tail -c "$min_size" "$dev_log" > "$dev_dir/tmp.log"
 #                     mv "$dev_dir/tmp.log" "$dev_log"
 #
@@ -263,9 +279,9 @@ while [ true ]; do
 
         # Has either changed since the last time we checked?
         if [ "$active_win_class" != "$last_win_class" ] || [ "$active_win_title" != "$last_win_title" ]; then
-            echo "$(date +%D) | $(date +%T):  Active Window has changed!" >> "$app_log"
-            echo "$(date +%D) | $(date +%T):  Active Window Class: $active_win_class" >> "$app_log"
-            echo -e "$(date +%D) | $(date +%T):  Active Window Title: $active_win_title\n" >> "$app_log"
+            TimeStamp "Active Window has changed!" "$app_log"
+            TimeStamp "Active Window Class: $active_win_class" "$app_log"
+            TimeStamp -e "Active Window Title: $active_win_title\n" "$app_log"
 
             # Run through a list of connected devices...
             while IFS=  read -r -d $'\n'; do
@@ -274,8 +290,8 @@ while [ true ]; do
                 if [ -d "$app_dir/presets/$REPLY" ]; then
 
                     # ...configure the device for the active window
-                    echo "$(date +%D) | $(date +%T):  Configuring Device:$REPLY" >> "$app_log"
-                    LoadConfig "$REPLY"&
+                    TimeStamp "Configuring Device:[$REPLY]" "$app_log"
+                    LoadConfig "$REPLY" "active_presets[$REPLY]"
                 fi
             done < <(input-remapper-control --list)
 
@@ -285,16 +301,11 @@ while [ true ]; do
 
             wait
 
-            echo -e "\n$(date +%D) | $(date +%T):  Active Presets:" >> "$app_log"
-
-            while IFS=  read -r -d $'\0'; do
-                reply=${REPLY#*/presets/*}
-                if [ -f "$app_dir/presets/$reply/active" ]; then
-                    active_presets["$reply"]=$(cat < "$app_dir/presets/$reply/active")
-                    rm "$app_dir/presets/$reply/active"
-                    echo -e "$(date +%D) | $(date +%T):  $reply:${active_presets[$reply]}" >> "$app_log"
-                fi
-            done < <(find "$app_dir/presets" -type d -print0)
+            TimeStamp "Active Presets:" "$app_log"
+#
+            for i in "${!active_presets[@]}"; do
+                TimeStamp "[$i]:${active_presets[$i]}" "$app_log"
+            done
 
             echo -e "\n\n$(date +%D) | $(date +%T):  ------------------------------------------------------------------\n\n" >> "$app_log"
         fi
