@@ -25,13 +25,14 @@ declare -A active_presets
 TimeStamp () # Prefixes provided string ($1) with timestamp and writes to provided log file ($2)
 {
     #echo $1
+    e=
+    E=
     local OPTIND option
     ARGIND="${OPTIND}"
     while getopts e: option; do
         case "${option}" in
             e) e=1
             E="${OPTARG}"
-            ARGIND="${OPTIND}"
             ;;
         esac
     done
@@ -39,7 +40,7 @@ TimeStamp () # Prefixes provided string ($1) with timestamp and writes to provid
     if [ "$e" == 1 ]; then
         echo -e "$(date +%D) | $(date +%T):  $E" >> "${@:$#}"
     else
-        echo "$(date +%D) | $(date +%T):  ${@:1}" >> "${@: -1}"
+        echo "$(date +%D) | $(date +%T):  ${*:${OPTIND}:1}" >> "${@:$#}"
     fi
 }
 
