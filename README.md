@@ -24,6 +24,7 @@ Once installed, input-remapper-xautopresets uses the following file tree:
 |   |   |       |-> xautopresets.conf (Optional device-specific configuration file. Medium priority)
 |   |   |       |-> xautopresets.log  (Device-specific log file)
 |   |   |
+|   |   |-> [Class Name].conf  (Optional global class-specific configuration files. High priority)
 |   |   |-> xautopresets.conf  (Global configuration file. Lowest priority)    
 |   |   |-> xautopresets.log   (Global log file)
 |   | 
@@ -33,8 +34,17 @@ Once installed, input-remapper-xautopresets uses the following file tree:
 |-> .local/bin/
     |-> input-remapper-xautopresets (#!/bin/bash core script)
 ```
+### Configuration File Priority
+`input-remapper-xautopresets` will read through each applicable configuration file in order of increasing priority as follows:
+- Global `xautopresets.conf`
+- Device `xautopresets.conf`
+- Global `[Class Name].conf`
+- Device `[Class Name].conf`
+
+Later files will override settings in earlier ones. This will allow users to avoid having to repeat settings from lower priority files in higher priority ones.
+
 ### xautopresets.conf
-This file contains a list of window classes paired with a list of input-remapper preset names. Preset names should not include the .json extension.  
+This file contains a list of window classes paired with a list of input-remapper preset names. Preset names should not include the .json extension.
 ```
 exampleWindowclass1=Example Preset Name 1
 exampleWindowclass2=Example Preset Name 1
@@ -53,19 +63,17 @@ exampleWindowClass8=preset6
 ```
 _default=_Bypass
 Input-remapper-gtk=_Bypass
-```  
+```
 `_default` is a window class used internally by the script. The preset assigned to this class will be loaded any time no other preset is configured, or if the configured preset cannot be located. You can change the preset assigned here to whatever you want.  
   
 `_Bypass` is likewise a preset name used internally by the script. This is the preset that will disable input-remapper injection, and will be used in place of the `_default` preset if it can't be found or isn't configured  
   
 `Input-remapper-gtk` is the window class name for `input-remapper`'s gui configuration tool. Injection needs to be stopped to make changes, so this seemed appropriate. Feel free to change.  
   
-The device-specific file is higher priority than the global one. No settings in global file will ever apply to any device with its own file.  
-  
 Use `xdotool selectwindow getwindowclassname` to get window class names for your applications
 
 ### [Class Name].conf
-This file contains a list of window titles paried with a list of input-remapper preset names. It is intended to give the user the ability to have more than one configured preset for a given application, and change between them based on the window's name as shown in the title bar. It is the highest priority configuration file, and if a device has this file in its folder, it will override any settings for [Class Name] found in both the global and device xautopresets.conf files for that device. Same basic syntax as xautoprofile, except:
+This file contains a list of window titles paried with a list of input-remapper preset names. It is intended to give the user the ability to have more than one configured preset for a given application, and change between them based on the window's name as shown in the title bar. Same basic syntax as xautoprofile, except:
 ```
 example Window Title=Example Preset Name
 ```
