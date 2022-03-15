@@ -9,7 +9,6 @@ version="0.9.4"
 desc="Automatic input-remapper preset manager for systems with access to xdotools"
 app_dir=~/.config/input-remapper
 global_conf="$app_dir/$app_name.conf"
-global_class_conf="$app_dir/classes/$active_win_class.conf"
 app_log="$app_dir/$app_name.log"
 default_class=_default
 input_remapper_ui=Input-remapper-gtk
@@ -25,21 +24,22 @@ declare -A active_presets
 
 TimeStamp () # Prefixes provided string ($1) with timestamp and writes to provided log file ($2)
 {
-    E=
+    #echo $1
     local OPTIND option
-    while getopts ":e" option; do
-        echo "$option" >> "$2"
-        case "${OPTARG}" in
-            e)  E=1
-                echo test >> "$2"
-                ;;
+    ARGIND="${OPTIND}"
+    while getopts e: option; do
+        case "${option}" in
+            e) e=1
+            E="${OPTARG}"
+            ARGIND="${OPTIND}"
+            ;;
         esac
     done
 
-    if [ "$E" == 1 ]; then
-        echo -e "$(date +%D) | $(date +%T):  $1" >> "$2"
+    if [ "$e" == 1 ]; then
+        echo -e "$(date +%D) | $(date +%T):  $E" >> "${@:$#}"
     else
-        echo "$(date +%D) | $(date +%T):  $1" >> "$2"
+        echo "$(date +%D) | $(date +%T):  ${@:1}" >> "${@: -1}"
     fi
 }
 
@@ -81,7 +81,7 @@ SetPreset () # Applies preset to device. Requires device name, target preset nam
 
                 if [ ! -f "$dev_dir/$default_preset.json" ]; then
                     TimeStamp -e "Not found!\n" "$dev_log"
-                    TimeStamp "No appropriate preset found. Checking injection status of Device:[$dev_name]..." | tee --append "$dev_log" "$app_log" > /dev/null
+                    echo "No appropriate preset found. Checking injection status of Device:[$dev_name]..." | tee --append "$dev_log" "$app_log" > /dev/null
 
                     if [ "${active_presets[$dev_name]}" != "$bypass_preset" ]; then
                         #stop input-remapper injection
@@ -134,7 +134,6 @@ SetPreset () # Applies preset to device. Requires device name, target preset nam
 
 SetTargets () # Takes active window [class|title], .conf and .log file as parameters. Iterates through .conf file and sets target/default presets by reference
 {
-    declare -a targets
     active_window="$1"
     conf_file="$2"
     dev_log="$3"
@@ -169,6 +168,7 @@ LoadConfig () # Finds appropriate preset for active window. Requires single devi
     dev_conf="$dev_dir/$app_name.conf"
     dev_log="$app_dir/presets/$dev_name/$app_name.log"
     dev_class_conf="$dev_dir/$active_win_class.conf"
+    global_class_conf="$app_dir/classes/$active_win_class.conf"
 
     target_preset=_NOTSET
     default_preset=_NOTSET
@@ -213,7 +213,6 @@ LoadConfig () # Finds appropriate preset for active window. Requires single devi
 
     TimeStamp "Searching for device-and-class-specific configuration file..." "$dev_log"
     if [ -f "$dev_class_conf" ]; then
-
         TimeStamp -e "Found!\n" "$dev_log"
         SetTargets "$active_win_title" "$dev_class_conf" "$dev_log" target_preset default_preset
     else
