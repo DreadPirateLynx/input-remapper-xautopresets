@@ -5,7 +5,7 @@
 # ------------------------------ #
 
 app_name=${0#*input-remapper-*}
-version="0.9.4"
+version="0.9.4.1"
 desc="Automatic input-remapper preset manager for systems with access to xdotools"
 app_dir=~/.config/input-remapper
 global_conf="$app_dir/$app_name.conf"
@@ -25,31 +25,30 @@ declare -A active_presets
 TimeStamp () # Prefixes provided string ($1) with timestamp and writes to provided log file ($2)
 {
     #echo $1
-    o=
-    e=
-    E=
-    O=
+    explicit=
+    overwrite=
+    #E=
+    #O=
     local OPTIND option
-    ARGIND="${OPTIND}"
     while getopts :e:o: option; do
         case "${option}" in
-            e) e=1
+            e) explicit=1
             E="${OPTARG}"
             ;;
-            o) o=1
+            o) overwrite=1
             O="${OPTARG}"
             ;;
         esac
     done
 
-    if [ "$e" == 1 ]; then
-        if [ "$o" == 1 ]; then
+    if [ "$explicit" == 1 ]; then
+        if [ "$overwrite" == 1 ]; then
             echo -e "$(date +%D) | $(date +%T):  $O" > "${@:$#}"
         else
             echo -e "$(date +%D) | $(date +%T):  $E" >> "${@:$#}"
         fi
     else
-        if [ "$o" == 1 ]; then
+        if [ "$overwrite" == 1 ]; then
             echo "$(date +%D) | $(date +%T):  $O" > "${@:$#}"
         else
             echo "$(date +%D) | $(date +%T):  ${*:${OPTIND}:1}" >> "${@:$#}"
@@ -62,7 +61,8 @@ TimeStamp -e "$desc\n" "$app_log"
 
 while IFS=  read -r -d $'\0'; do
     if [ -f "$REPLY/$app_name.log" ]; then
-        TimeStamp -o "Device:["${REPLY#*/presets/*}"]" "$REPLY/$app_name.log"
+        dev_name=${REPLY#*/presets/*}
+        TimeStamp -o "Device:[$dev_name]" "$REPLY/$app_name.log"&
     fi
 done < <(find "$app_dir/presets" -type d -print0)
 
@@ -193,13 +193,13 @@ LoadConfig () # Finds appropriate preset for active window. Requires single devi
     TimeStamp "Active Window Class: $active_win_class" "$dev_log"
     TimeStamp "Active Window Title: $active_win_title" "$dev_log"
 
-    TimeStamp "Searching for global configuration file..." "$dev_log"
+    TimeStamp "Searching for global configuration file ($global_conf)..." "$dev_log"
     if [ -f "$global_conf" ]; then
         TimeStamp -e "Found!\n" "$dev_log"
         SetTargets "$active_win_class" "$global_conf" "$dev_log" target_preset default_preset
     else
         TimeStamp -e "Not found!\n" "$dev_log"
-        TimeStamp "Generating default global configuration file..." "$dev_log"
+        TimeStamp "Generating default global configuration file: $global_conf..." "$dev_log"
         touch "$global_conf"
         echo -e "$default_class=$bypass_preset\n$input_remapper_ui=$bypass_preset" > "$global_conf"
         default_preset=$bypass_preset
@@ -209,7 +209,7 @@ LoadConfig () # Finds appropriate preset for active window. Requires single devi
         TimeStamp -e "Default Preset: $default_preset\n" "$dev_log"
     fi
 
-    TimeStamp "Searching for global class-specific configuration file..." "$dev_log"
+    TimeStamp "Searching for global class-specific configuration file ($global_class_conf)..." "$dev_log"
     if [ -f "$global_class_conf" ]; then
         TimeStamp -e "Found!\n" "$dev_log"
         SetTargets "$active_win_title" "$global_class_conf" "$dev_log" target_preset default_preset
@@ -217,7 +217,7 @@ LoadConfig () # Finds appropriate preset for active window. Requires single devi
         TimeStamp -e "Not found!\n" "$dev_log"
     fi
 
-    TimeStamp "Searching for device-specific configuration file..." "$dev_log"
+    TimeStamp "Searching for device-specific configuration file ($dev_conf)..." "$dev_log"
     if [ -f "$dev_conf" ]; then
         TimeStamp -e "Found!\n" "$dev_log"
         SetTargets "$active_win_class" "$dev_conf" "$dev_log" target_preset default_preset
@@ -225,7 +225,7 @@ LoadConfig () # Finds appropriate preset for active window. Requires single devi
         TimeStamp -e "Not found!\n" "$dev_log"
     fi
 
-    TimeStamp "Searching for device-and-class-specific configuration file..." "$dev_log"
+    TimeStamp "Searching for device-and-class-specific configuration file ($dev_class_conf)..." "$dev_log"
     if [ -f "$dev_class_conf" ]; then
         TimeStamp -e "Found!\n" "$dev_log"
         SetTargets "$active_win_title" "$dev_class_conf" "$dev_log" target_preset default_preset
