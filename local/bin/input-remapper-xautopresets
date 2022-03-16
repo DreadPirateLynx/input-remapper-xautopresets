@@ -5,7 +5,7 @@
 # ------------------------------ #
 
 app_name=${0#*input-remapper-*}
-version="0.9.5"
+version="0.9.4"
 desc="Automatic input-remapper preset manager for systems with access to xdotools"
 app_dir=~/.config/input-remapper
 global_conf="$app_dir/$app_name.conf"
