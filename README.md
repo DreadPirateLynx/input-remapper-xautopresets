@@ -18,13 +18,16 @@ Once installed, input-remapper-xautopresets uses the following file tree:
 ~/
 |-> .config/
 |   |-> input-remapper/
-|   |   |-> presets/
-|   |   |   |-> [Device Name]/
-|   |   |       |-> [Class Name].conf (Optional device-and-class-specific configuration files. Highest priority)
-|   |   |       |-> xautopresets.conf (Optional device-specific configuration file. Medium priority)
-|   |   |       |-> xautopresets.log  (Device-specific log file)
+|   |   |-> classes/
+|   |   |   |-> [Class Name].conf  (Optional global class-specific configuration files. Medium priority)
 |   |   |
-|   |   |-> [Class Name].conf  (Optional global class-specific configuration files. High priority)
+|   |   |-> presets/[Device Name]/
+|   |   |   |-> classes/
+|   |   |   |   |-> [Class Name].conf (Optional device-and-class-specific configuration files. Highest priority)
+|   |   |   |
+|   |   |   |-> xautopresets.conf (Optional device-specific configuration file. High priority)
+|   |   |   |-> xautopresets.log  (Device-specific log file)
+|   |   |
 |   |   |-> xautopresets.conf  (Global configuration file. Lowest priority)    
 |   |   |-> xautopresets.log   (Global log file)
 |   | 
@@ -37,8 +40,8 @@ Once installed, input-remapper-xautopresets uses the following file tree:
 ### Configuration File Priority
 `input-remapper-xautopresets` will read through each applicable configuration file in order of increasing priority as follows:
 - Global `xautopresets.conf`
-- Device `xautopresets.conf`
 - Global `[Class Name].conf`
+- Device `xautopresets.conf`
 - Device `[Class Name].conf`
 
 Later files will override settings in earlier ones. This will allow users to avoid having to repeat settings from lower priority files in higher priority ones.
