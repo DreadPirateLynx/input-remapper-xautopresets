@@ -1,0 +1,132 @@
+parent_app=input-remapper
+app_name=xautopresets
+script_dir=$HOME/.local/bin
+service_dir=$HOME/.config/systemd/user
+working_dir=$HOME/.config/$parent_app
+dev_dir=$working_dir/presets
+class_conf_dir=classes
+script_file=$script_dir/$parent_app-$app_name
+service_file=$parent_app-$app_name.service
+remove_all=false
+failure=false
+
+Help ()
+{
+    echo -e "\n$parent_app-$app_name uninstaller\n"
+    echo -e "Default behavior is to leave configuration files in place\n"
+    echo "  -a|A|c|C    Remove all cofiguration files (including EVERYTHING in all 'classes/' directories) in addition to program files."
+    echo "  -h          Display this menu"
+}
+
+while getopts :aAcCh option; do
+
+    case "${option}" in
+
+        a|A|c|C) echo "You have chosen to run the uninstaller with option '-${option}'."
+        echo "This will remove all configuration files (including EVERYTHING in all 'classes/' directories) in addition to the program files."
+        echo "Are you sure you want to do this?"
+        printf "y/N: "
+        read confirm
+
+        case "$confirm" in
+
+            y|Y) echo "As you wish"
+            remove_all=true
+            ;;
+
+            n|N|'') echo "Probably for the best"
+            remove_all=false
+            ;;
+
+            *) echo "I can't understand your gobblety-gook"
+            echo "Asuming you had a brain hemorrage and will keep your configuration files safe and sound"
+            remove_all=false
+            ;;
+
+        esac
+        ;;
+
+        h) Help
+        exit
+        ;;
+
+        ?) echo "FATAL ERROR: invalid option \"-${OPTARG}\""
+        Help
+        exit
+        ;;
+
+    esac
+
+done
+
+if [ "$(systemctl --user is-active $service_file)" == "active" ]; then
+    echo "Service running. Stopping..."
+    ( systemctl --user stop "$service_file" && echo "Done!" ) ||
+        ( echo -e "FATAL ERROR: Failed!\nFATAL ERROR: Could not stop service\nPANIC: Aborting uninstallation." && exit )
+fi
+
+if [ "$(systemctl --user is-enabled $service_file)" == "enabled" ]; then
+    echo "Service enabled. Disabling..."
+    ( systemctl --user disable "$service_file" && echo "Done!" ) ||
+        ( echo -e "FATAL ERROR: Failed!\nFATAL ERROR: Could not disable service\nPANIC: Aborting uninstallation." && exit )
+fi
+
+if [ -f "$service_dir/$service_file" ]; then
+    ( rm -v "$service_dir/$service_file" &&
+        ( echo "Reloading user systemd daemon..." && systemctl --user daemon-reload && echo "Done!" ) ||
+            ( echo -e "ERROR: Failed!\nWARNING: Please manually restart your user systemd daemon" && failure=true )) ||
+        ( echo "ERROR: Failed!" && failure=true )
+fi
+
+if [ -f "$script_file" ]; then
+    rm -v "$script_file" ||
+        ( echo "ERROR: Failed!" && failure=true )
+fi
+
+if [ -f "$working_dir/active" ]; then
+    rm -v "$working_dir/active" ||
+        ( echo "ERROR: Failed!" && failure=true )
+fi
+
+if [ -f "$working_dir/$app_name.log" ]; then
+    rm -v "$working_dir/$app_name.log" ||
+        ( echo "ERROR: Failed!" && failure=true )
+fi
+
+for dir in $dev_dir/*; do
+    if [ -f "$dir/$app_name.log" ]; then
+        rm -v "$dir/$app_name.log" ||
+            ( echo "ERROR: Failed!" && failure=true )
+    fi
+done
+
+if [ "$remove_all" == "true" ]; then
+    if [ -d "$working_dir/$class_conf_dir" ]; then
+        rm -vr "$working_dir/$class_conf_dir" ||
+            ( echo "ERROR: Failed!" && failure=true )
+    fi
+
+    if [ -f "$working_dir/$app_name.conf" ]; then
+        rm -vr "$working_dir/$app_name.conf" ||
+            ( echo "ERROR: Failed!" && failure=true )
+    fi
+
+    for dir in $dev_dir/*; do
+        if [ -d "$dir/$class_conf_dir" ]; then
+                rm -vr "$dir/$class_conf_dir" ||
+            ( echo "ERROR: Failed!" && failure=true )
+        fi
+
+        if [ -f "$dir/$app_name.conf" ]; then
+                rm -vr "$dir/$app_name.conf" ||
+            ( echo "ERROR: Failed!" && failure=true )
+        fi
+    done
+fi
+
+if [ "$failure" == "true" ]; then
+    echo "WARNING: One or more problems encountered during uninstallation"
+    echo "Please review output and take whatever steps neccessary to complete removal"
+fi
+
+echo "Uninstallation complete!"
