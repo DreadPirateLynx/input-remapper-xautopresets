@@ -12,6 +12,17 @@ The installer will copy all necessary files to their correct locations, and enab
   
 Use `systemctl --user [stop|disable|enable|start|status] input-remapper-xautopresets.service` to change service state
 
+## Uninstallation
+`/path/to/download/input-remapper-xautopresets/uninstall`
+```
+input-remapper-xautopresets uninstaller
+
+Default behavior is to leave configuration files in place
+
+-a|A|c|C    Remove all cofiguration files (including EVERYTHING in all 'classes/' directories) in addition to program files.
+-h          Display this menu
+```
+
 ## Configuration
 Once installed, input-remapper-xautopresets uses the following file tree:
 ```
