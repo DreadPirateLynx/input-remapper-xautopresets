@@ -4,19 +4,51 @@
 # Global Variable Initialization #
 # ------------------------------ #
 
-app_name=${0#*input-remapper-*}
-version="0.9.4.1"
+parent_app_name=input-remapper
+app_name=${0#*$parent_app_name-*}
+version="0.9.5"
 desc="Automatic input-remapper preset manager for systems with access to xdotools"
-app_dir=~/.config/input-remapper
+app_dir=~/.config/$parent_app_name
 global_conf="$app_dir/$app_name.conf"
 app_log="$app_dir/$app_name.log"
+active_presets_log="$app_dir/active"
 default_class=_default
-input_remapper_ui=Input-remapper-gtk
+input_remapper_gui=Input-remapper-gtk
 bypass_preset=_Bypass
 active_win_class=
 active_win_title=
 
 declare -A active_presets
+
+Help ()
+{
+    echo -e "\n$parent_app_name-$app_name v$version"
+    echo -e "$desc\n"
+    echo "-h        Display this table"
+    echo -e "-v        Display version number\n"
+    echo "Please use 'systemctl --user start input-remapper-xautopresets.service' to run this program"
+}
+
+while getopts :hv option; do
+    case "${option}" in
+        h) Help
+        exit
+        ;;
+        v) echo "$parent_app_name-$app_name v$version"
+        exit
+        ;;
+        ?) echo "invalid option \"-${OPTARG}\""
+        echo "Please use 'systemctl --user start input-remapper-xautopresets.service' to run this program"
+        echo "Run 'input-remapper-xautopresets -h' for more options"
+        exit
+        ;;
+    esac
+done
+
+if [ -z "${INVOCATION_ID}" ]; then
+    echo "Please use 'systemctl --user start input-remapper-xautopresets.service' to run this program"
+    exit
+fi
 
 # --------------- #
 # Initialize Logs #
@@ -24,11 +56,9 @@ declare -A active_presets
 
 TimeStamp () # Prefixes provided string ($1) with timestamp and writes to provided log file ($2)
 {
-    #echo $1
     explicit=
     overwrite=
-    #E=
-    #O=
+
     local OPTIND option
     while getopts :e:o: option; do
         case "${option}" in
@@ -56,7 +86,7 @@ TimeStamp () # Prefixes provided string ($1) with timestamp and writes to provid
     fi
 }
 
-TimeStamp -o "input-remapper-$app_name v$version" "$app_log"
+TimeStamp -o "$parent_app_name-$app_name v$version" "$app_log"
 TimeStamp -e "$desc\n" "$app_log"
 
 while IFS=  read -r -d $'\0'; do
@@ -95,16 +125,19 @@ SetPreset () # Applies preset to device. Requires device name, target preset nam
 
                 if [ ! -f "$dev_dir/$default_preset.json" ]; then
                     TimeStamp -e "Not found!\n" "$dev_log"
-                    echo "No appropriate preset found. Checking injection status of Device:[$dev_name]..." | tee --append "$dev_log" "$app_log" > /dev/null
+                    echo "No appropriate preset found. Checking injection status of Device:[$dev_name]..." |
+                        tee --append "$dev_log" "$app_log" > /dev/null
 
                     if [ "${active_presets[$dev_name]}" != "$bypass_preset" ]; then
                         #stop input-remapper injection
-                        echo -e "$(date +%D) | $(date +%T):  Stopping injection on Device:[$dev_name]\n" | tee --append "$dev_log" "$app_log" > /dev/null
+                        echo -e "$(date +%D) | $(date +%T):  Stopping injection on Device:[$dev_name]\n" |
+                            tee --append "$dev_log" "$app_log" > /dev/null
                         input-remapper-control --command stop --device "$dev_name" &>> "$dev_log"
                         active_preset="$bypass_preset"
 
                     else
-                        echo -e "$(date +%D) | $(date +%T):  Injection inactive. No action required\n" | tee --append "$dev_log" "$app_log" > /dev/null
+                        echo -e "$(date +%D) | $(date +%T):  Injection inactive. No action required\n" |
+                            tee --append "$dev_log" "$app_log" > /dev/null
                         active_preset="$bypass_preset"
                     fi
 
@@ -113,12 +146,14 @@ SetPreset () # Applies preset to device. Requires device name, target preset nam
 
                     if [ "${active_presets[$dev_name]}" != "$default_preset" ]; then
                         #enable default preset
-                        echo -e "$(date +%D) | $(date +%T):  Setting Device:[$dev_name] to Preset:$default_preset\n" | tee --append "$dev_log" "$app_log" > /dev/null
+                        echo -e "$(date +%D) | $(date +%T):  Setting Device:[$dev_name] to Preset:$default_preset\n" |
+                            tee --append "$dev_log" "$app_log" > /dev/null
                         input-remapper-control --command start --device "$dev_name" --preset "$default_preset" &>> "$dev_log"
                         active_preset="$default_preset"
 
                     else
-                        echo -e "$(date +%D) | $(date +%T):  Preset:$default_preset is already active on Device:[$dev_name]\n" | tee --append "$dev_log" "$app_log" > /dev/null
+                        echo -e "$(date +%D) | $(date +%T):  Preset:$default_preset is already active on Device:[$dev_name]\n" |
+                            tee --append "$dev_log" "$app_log" > /dev/null
                         active_preset="$default_preset"
                     fi
                 fi
@@ -126,24 +161,27 @@ SetPreset () # Applies preset to device. Requires device name, target preset nam
             else
                 TimeStamp -e "Found!\n" "$dev_log"
                 #enable app-specific preset
-                echo -e "$(date +%D) | $(date +%T):  Setting Device:[$dev_name] to Preset:$target_preset\n" | tee --append "$dev_log" "$app_log" > /dev/null
+                echo -e "$(date +%D) | $(date +%T):  Setting Device:[$dev_name] to Preset:$target_preset\n" |
+                    tee --append "$dev_log" "$app_log" > /dev/null
                 input-remapper-control --command start --device "$dev_name" --preset "$target_preset" &>> "$dev_log"
                 active_preset="$target_preset"
             fi
 
         else
             #stop input-remapper injection
-            echo -e "$(date +%D) | $(date +%T):  Stopping injection on Device:[$dev_name]\n" | tee --append "$dev_log" "$app_log" > /dev/null
+            echo -e "$(date +%D) | $(date +%T):  Stopping injection on Device:[$dev_name]\n" |
+                tee --append "$dev_log" "$app_log" > /dev/null
             input-remapper-control --command stop --device "$dev_name" &>> "$dev_log"
             active_preset="$bypass_preset"
         fi
 
     else
-        echo -e "$(date +%D) | $(date +%T):  Preset:$target_preset is already active on Device:[$dev_name]\n" | tee --append "$dev_log" "$app_log" > /dev/null
+        echo -e "$(date +%D) | $(date +%T):  Preset:$target_preset is already active on Device:[$dev_name]\n" |
+            tee --append "$dev_log" "$app_log" > /dev/null
         active_preset="$target_preset"
     fi
     echo -e "\n\n$(date +%D) | $(date +%T):  ------------------------------------------------------------------\n\n" >> "$dev_log"
-    echo "$active_preset"
+    echo "$dev_name=$active_preset" >> "$active_presets_log"
 }
 
 SetTargets () # Takes active window [class|title], .conf and .log file as parameters. Iterates through .conf file and sets target/default presets by reference
@@ -187,7 +225,7 @@ LoadConfig () # Finds appropriate preset for active window. Requires single devi
     target_preset=_NOTSET
     default_preset=_NOTSET
 
-    local -n active_preset_ref="$2"
+    #local -n active_preset_ref="$2"
 
     TimeStamp "Active window has changed" "$dev_log"
     TimeStamp "Active Window Class: $active_win_class" "$dev_log"
@@ -201,7 +239,7 @@ LoadConfig () # Finds appropriate preset for active window. Requires single devi
         TimeStamp -e "Not found!\n" "$dev_log"
         TimeStamp "Generating default global configuration file: $global_conf..." "$dev_log"
         touch "$global_conf"
-        echo -e "$default_class=$bypass_preset\n$input_remapper_ui=$bypass_preset" > "$global_conf"
+        echo -e "$default_class=$bypass_preset\n$input_remapper_gui=$bypass_preset" > "$global_conf"
         default_preset=$bypass_preset
         target_preset=$default_preset
         TimeStamp "Done!" "$dev_log"
@@ -240,8 +278,12 @@ LoadConfig () # Finds appropriate preset for active window. Requires single devi
     TimeStamp "Target Preset: $target_preset" "$dev_log"
     TimeStamp "Default Preset: $default_preset" "$dev_log"
 
-    active_preset_ref=$(SetPreset "$dev_name" "$target_preset" "$default_preset")
+    SetPreset "$dev_name" "$target_preset" "$default_preset"
+    #active_presets[$dev_name]=$(SetPreset "$dev_name" "$target_preset" "$default_preset")
+    #active_preset_ref=$(SetPreset "$dev_name" "$target_preset" "$default_preset")
 }
+
+export -f LoadConfig
 
 # TrimLogs ()
 # {
@@ -304,7 +346,7 @@ while [ true ]; do
 
                     # ...configure the device for the active window
                     TimeStamp "Configuring Device:[$REPLY]" "$app_log"
-                    LoadConfig "$REPLY" "active_presets[$REPLY]"
+                    LoadConfig "$REPLY" "active_presets[$REPLY]"&
                 fi
             done < <(input-remapper-control --list)
 
@@ -315,10 +357,19 @@ while [ true ]; do
             wait
 
             TimeStamp "Active Presets:" "$app_log"
-#
-            for i in "${!active_presets[@]}"; do
-                TimeStamp "[$i]:${active_presets[$i]}" "$app_log"
-            done
+
+            while IFS=  read -r -d $'\n'; do
+                DEVICE=${REPLY%*=*}
+                PRESET=${REPLY#*=*}
+                TimeStamp "[$DEVICE]=$PRESET" "$app_log"
+                active_presets[$DEVICE]="$PRESET"
+            done < <(cat < "$active_presets_log")
+
+            rm "$active_presets_log"
+
+#             for i in "${!active_presets[@]}"; do
+#                 TimeStamp "[$i]:${active_presets[$i]}" "$app_log"
+#             done
 
             echo -e "\n\n$(date +%D) | $(date +%T):  ------------------------------------------------------------------\n\n" >> "$app_log"
         fi
