@@ -26,11 +26,17 @@ Valid options:
 -v        Display version number
 
 Valid arguments:
-[enable|disable|restart|start|status|stop]
+[enable|disable|restart|start|status|stop]:
     runs systemctl --user [command] input-remapper-xautopresets.service
-    Example useage: "input-remapper-xautopresets start"
 
-Please use 'systemctl --user start input-remapper-xautopresets.service' to run this program or provide a valid argument
+getwindowinfo:
+    Select a window with the mouse and print the window's class and title
+
+Example useage:
+    input-remapper-xautopresets start
+    input-remapper-xautopresets getwindowinfo
+
+Either provide a vaild argument or envoke 'systemctl' directly.
 ```
 `input-remapper-xautopresets` will not allow you to run it directly. It must be controlled through `systemctl`, either directly, or through the interface provided by `input-remapper-xautopresets`
 
@@ -108,14 +114,14 @@ Input-remapper-gtk=_Bypass
   
 `Input-remapper-gtk` is the window class name for `input-remapper`'s gui configuration tool. Injection needs to be stopped to make changes, so this seemed appropriate. Feel free to change.  
   
-Use `xdotool selectwindow getwindowclassname` to get window class names for your applications
+Use `input-remapper-xautopresets getwindowinfo` or `xdotool selectwindow getwindowclassname` to get window class names for your applications
 
 ### [Class Name].conf
 This file contains a list of window titles paried with a list of input-remapper preset names. It is intended to give the user the ability to have more than one configured preset for a given application, and change between them based on the window's name as shown in the title bar. Same basic syntax as `xautopresets.conf`, except:
 ```
 example Window Title=Example Preset Name
 ```
-Use `xdotool selectwindow getwindowname` (or look at the titlebar) to get window title. Wildcards and spaces supported just like with `xautopresets.conf`
+Use `input-remapper-xautopresets getwindowinfo` or `xdotool selectwindow getwindowname` to get window title. Wildcards and spaces supported just like with `xautopresets.conf`
 
 #### Example firedragon.conf
 ```

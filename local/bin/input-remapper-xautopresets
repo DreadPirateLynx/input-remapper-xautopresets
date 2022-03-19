@@ -32,9 +32,10 @@ Help ()
     echo "-h        Display this table"
     echo -e "-v        Display version number\n"
     echo -e "Valid arguments:"
-    echo -e "[enable|disable|restart|start|status|stop]\n\truns systemctl --user [command] $parent_app_name-$app_name.service"
-    echo -e "\tExample useage: \"$parent_app_name-$app_name start\"\n"
-    echo "Please use 'systemctl --user start input-remapper-xautopresets.service' to run this program or provide a valid argument"
+    echo -e "[enable|disable|restart|start|status|stop]:\n\truns systemctl --user [command] $parent_app_name-$app_name.service\n"
+    echo -e "getwindowinfo:\n\tSelect a window with the mouse and print the window's class and title\n"
+    echo -e "Example useage:\n\t$parent_app_name-$app_name start\n\t$parent_app_name-$app_name getwindowinfo\n"
+    echo "Either provide a vaild argument or envoke 'systemctl' directly."
 }
 
 while getopts :hv option; do
@@ -63,7 +64,15 @@ if [ $# -gt 0 ]; then
 
             enable|disable|restart|start|status|stop)   systemctl --user $command "$parent_app_name-$app_name.service" ;;
 
-            *)  echo -e "Unknown argument '$command'\n Valid arguments are [enable|disable|restart|start|status|stop]" ;;
+            getwindowinfo)  window=$(xdotool selectwindow)
+                            active_win_class=$(xdotool getwindowclassname $window)
+                            active_win_title=$(xdotool getwindowname $window)
+
+                            echo "Class: $active_win_class"
+                            echo "Title: $active_win_title" ;;
+
+            *)  echo "Unknown argument '$command'"
+                Help ;;
 
         esac
     done
