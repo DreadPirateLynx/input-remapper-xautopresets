@@ -10,7 +10,7 @@ Automatically changes the active input-remapper preset for each connected device
   
 The installer will copy all necessary files to their correct locations, and enable/start the required service  
 
-It is safe to run the installer over a previously installed/currently running version
+It is safe to run `install` over a previously installed/currently running version
 
 ## Usage
 
@@ -82,7 +82,7 @@ Once installed, input-remapper-xautopresets uses the following file tree:
 Later files will override settings in earlier ones. This will allow users to avoid having to repeat settings from lower priority files in higher priority ones.
 
 ### xautopresets.conf
-This file contains a list of window classes paired with a list of input-remapper preset names. Preset names should not include the .json extension.
+This file contains a list of window classes paired with a list of input-remapper preset names. Preset names should not include the `.json` extension.
 ```
 exampleWindowclass1=Example Preset Name 1
 exampleWindowclass2=Example Preset Name 1
@@ -104,18 +104,18 @@ Input-remapper-gtk=_Bypass
 ```
 `_default` is a window class used internally by the script. The preset assigned to this class will be loaded any time no other preset is configured, or if the configured preset cannot be located. You can change the preset assigned here to whatever you want.  
   
-`_Bypass` is likewise a preset name used internally by the script. This is the preset that will disable input-remapper injection, and will be used in place of the `_default` preset if it can't be found or isn't configured  
+`_Bypass` is likewise a preset name used internally by the script. This is the preset that will disable `input-remapper` injection, and will be used in place of the `_default` preset if it can't be found or isn't configured
   
 `Input-remapper-gtk` is the window class name for `input-remapper`'s gui configuration tool. Injection needs to be stopped to make changes, so this seemed appropriate. Feel free to change.  
   
 Use `xdotool selectwindow getwindowclassname` to get window class names for your applications
 
 ### [Class Name].conf
-This file contains a list of window titles paried with a list of input-remapper preset names. It is intended to give the user the ability to have more than one configured preset for a given application, and change between them based on the window's name as shown in the title bar. Same basic syntax as xautoprofile, except:
+This file contains a list of window titles paried with a list of input-remapper preset names. It is intended to give the user the ability to have more than one configured preset for a given application, and change between them based on the window's name as shown in the title bar. Same basic syntax as `xautopresets.conf`, except:
 ```
 example Window Title=Example Preset Name
 ```
-Use `xdotool selectwindow getwindowname` (or look at the titlebar) to get window title. Wildcards and spaces supported just like with xautopresets.conf
+Use `xdotool selectwindow getwindowname` (or look at the titlebar) to get window title. Wildcards and spaces supported just like with `xautopresets.conf`
 
 #### Example firedragon.conf
 ```
