@@ -28,6 +28,7 @@ Valid options:
 Valid arguments:
 [enable|disable|restart|start|status|stop]
     runs systemctl --user [command] input-remapper-xautopresets.service
+    Example useage: "input-remapper-xautopresets start"
 
 Please use 'systemctl --user start input-remapper-xautopresets.service' to run this program or provide a valid argument
 ```
