@@ -24,10 +24,10 @@ Valid options:
 -v        Display version number
 
 Valid arguments:
-enable|disable|restart|start|status|stop
+[enable|disable|restart|start|status|stop]
 runs systemctl --user [command] input-remapper-xautopresets.service
 
-Please use 'systemctl --user start input-remapper-xautopresets.service' or provide a valid argument to run this program
+Please use 'systemctl --user start input-remapper-xautopresets.service' to run this program
 ```
 `input-remapper-xautopresets` will not allow you to run it directly. It must be controlled through systemctl, either directly, or through the interface provided by `input-remapper-xautopresets`
 
