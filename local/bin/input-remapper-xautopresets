@@ -20,6 +20,10 @@ active_win_title=
 
 declare -A active_presets
 
+# --------------- #
+# Option Handling #
+# --------------- #
+
 Help ()
 {
     echo -e "\n$parent_app_name-$app_name v$version"
@@ -48,26 +52,35 @@ while getopts :hv option; do
     esac
 done
 
+# ----------------- #
+# Argument Handling #
+# ----------------- #
+
 if [ $# -gt 0 ]; then
     for command in ${@}; do
         case "$command" in
 
             enable|disable|restart|start|status|stop)   systemctl --user $command "$parent_app_name-$app_name.service" ;;
 
-            *)  echo "Unknown argument '$command'. Skipping." ;;
+            *)  echo -e "Unknown argument '$command'\n Valid arguments are [enable|disable|restart|start|status|stop]" ;;
 
         esac
     done
+    exit
 fi
+
+# -------------------- #
+# Run As Service Check #
+# -------------------- #
 
 if [ -z "${INVOCATION_ID}" ]; then
     echo "Please use 'systemctl --user start input-remapper-xautopresets.service' to run this program"
     exit
 fi
 
-# --------------- #
-# Initialize Logs #
-# --------------- #
+# ------------------ #
+# Log Initialization #
+# ------------------ #
 
 TimeStamp () # Prefixes provided string ($1) with timestamp and writes to provided log file ($2)
 {
@@ -298,47 +311,9 @@ LoadConfig () # Finds appropriate preset for active window. Requires single devi
     #active_preset_ref=$(SetPreset "$dev_name" "$target_preset" "$default_preset")
 }
 
-export -f LoadConfig
-
-# TrimLogs ()
-# {
-#     min_size=200K
-#     max_size=500000
-#
-#     while [ true ]; do
-#
-#         if [ $(wc -c < "$app_log") -ge $max_size ]; then
-#
-#             TimeStamp -e "Log has exceeded maximum size. Trimming...\n" >> "$app_log"
-#             tail -c "$min_size" "$app_log" > "$app_dir/tmp.log"
-#             mv "$app_dir/tmp.log" "$app_log"
-#
-#         fi
-#         while IFS=  read -r -d $'\0'; do
-#
-#             dev_name=${REPLY#*/presets/*}
-#             dev_log="$app_dir/presets/$dev_name/$app_name.log"
-#
-#             if [ -f "$devlog" ]; then
-#
-#                 if [ $(wc -c < "$dev_log") -ge $max_size ]; then
-#
-#                     TimeStamp -e "Log has exceeded maximum size. Trimming...\n" >> "$dev_log"
-#                     tail -c "$min_size" "$dev_log" > "$dev_dir/tmp.log"
-#                     mv "$dev_dir/tmp.log" "$dev_log"
-#
-#                 fi
-#             fi
-#         done < <(find "$app_dir/presets" -type d -print0)
-#     done
-#
-#     sleep 60s
-# }
-
 # --------- #
 # Main Loop #
 # --------- #
-# TrimLogs&
 
 while [ true ]; do
         # What's the active window's class and title?
@@ -381,10 +356,6 @@ while [ true ]; do
             done < <(cat < "$active_presets_log")
 
             rm "$active_presets_log"
-
-#             for i in "${!active_presets[@]}"; do
-#                 TimeStamp "[$i]:${active_presets[$i]}" "$app_log"
-#             done
 
             echo -e "\n\n$(date +%D) | $(date +%T):  ------------------------------------------------------------------\n\n" >> "$app_log"
         fi
