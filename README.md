@@ -12,7 +12,7 @@ The installer will copy all necessary files to their correct locations, and enab
 
 It is safe to run the installer over a previously installed/currently running version
 
-Use `systemctl --user [stop|disable|enable|start|status] input-remapper-xautopresets.service` to change service state
+Use `systemctl --user [enable|disable|restart|start|status|stop] input-remapper-xautopresets.service` to change service state
 
 Alternatively, `input-remapper-xautopresets` can be used directly as an interface with systemctl:
 ```
@@ -25,7 +25,7 @@ Valid options:
 
 Valid arguments:
 enable|disable|restart|start|status|stop
-runs systemctl --user {command} input-remapper-xautopresets.service
+runs systemctl --user [command] input-remapper-xautopresets.service
 
 Please use 'systemctl --user start input-remapper-xautopresets.service' or provide an appropriate argument to run this program
 ```
