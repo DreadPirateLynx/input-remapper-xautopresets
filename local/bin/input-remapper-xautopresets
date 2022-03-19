@@ -6,7 +6,7 @@
 
 parent_app_name=input-remapper
 app_name=${0#*$parent_app_name-*}
-version="0.9.5"
+version="0.9.6"
 desc="Automatic input-remapper preset manager for systems with access to xdotools"
 app_dir=~/.config/$parent_app_name
 global_conf="$app_dir/$app_name.conf"
@@ -24,26 +24,41 @@ Help ()
 {
     echo -e "\n$parent_app_name-$app_name v$version"
     echo -e "$desc\n"
+    echo -e "Valid options:"
     echo "-h        Display this table"
     echo -e "-v        Display version number\n"
+    echo -e "Valid arguments:"
+    echo -e "enable|disable|restart|start|status|stop\n\truns systemctl --user {command} $parent_app_name-$app_name.service\n"
     echo "Please use 'systemctl --user start input-remapper-xautopresets.service' to run this program"
 }
 
 while getopts :hv option; do
     case "${option}" in
-        h) Help
-        exit
-        ;;
-        v) echo "$parent_app_name-$app_name v$version"
-        exit
-        ;;
-        ?) echo "invalid option \"-${OPTARG}\""
-        echo "Please use 'systemctl --user start input-remapper-xautopresets.service' to run this program"
-        echo "Run 'input-remapper-xautopresets -h' for more options"
-        exit
-        ;;
+
+        h)  Help
+            exit ;;
+
+        v)  echo "$parent_app_name-$app_name v$version"
+            exit ;;
+
+        ?)  echo "invalid option \"-${OPTARG}\""
+            Help
+            exit ;;
+
     esac
 done
+
+if [ $# -gt 0 ]; then
+    for command in ${@}; do
+        case "$command" in
+
+            enable|disable|restart|start|status|stop)   systemctl --user $command "$parent_app_name-$app_name.service" ;;
+
+            *)  echo "Unknown argument '$command'. Skipping." ;;
+
+        esac
+    done
+fi
 
 if [ -z "${INVOCATION_ID}" ]; then
     echo "Please use 'systemctl --user start input-remapper-xautopresets.service' to run this program"

@@ -14,6 +14,22 @@ It is safe to run the installer over a previously installed version
   
 Use `systemctl --user [stop|disable|enable|start|status] input-remapper-xautopresets.service` to change service state
 
+Alternatively, `input-remapper-xautopresets` can be used directly as an interface with systemctl:
+```
+input-remapper-xautopresets v0.9.6
+Automatic input-remapper preset manager for systems with access to xdotools
+
+Valid options:
+-h        Display this table
+-v        Display version number
+
+Valid arguments:
+enable|disable|restart|start|status|stop
+runs systemctl --user {command} input-remapper-xautopresets.service
+
+Please use 'systemctl --user start input-remapper-xautopresets.service' or provide an appropriate argument to run this program
+```
+
 ## Uninstallation
 `/path/to/download/input-remapper-xautopresets/uninstall`
 ```
