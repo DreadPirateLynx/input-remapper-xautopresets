@@ -10,8 +10,8 @@ Automatically changes the active input-remapper preset for each connected device
   
 The installer will copy all necessary files to their correct locations, and enable/start the required service  
 
-It is safe to run the installer over a previously installed version
-  
+It is safe to run the installer over a previously installed/currently running version
+
 Use `systemctl --user [stop|disable|enable|start|status] input-remapper-xautopresets.service` to change service state
 
 Alternatively, `input-remapper-xautopresets` can be used directly as an interface with systemctl:
