@@ -9,6 +9,8 @@ Automatically changes the active input-remapper preset for each connected device
 - Run `/path/to/download/input-remapper-xautopresets/install`
   
 The installer will copy all necessary files to their correct locations, and enable/start the required service  
+
+It is safe to run the installer over a previously installed version
   
 Use `systemctl --user [stop|disable|enable|start|status] input-remapper-xautopresets.service` to change service state
 
@@ -39,6 +41,7 @@ Once installed, input-remapper-xautopresets uses the following file tree:
 |   |   |   |-> xautopresets.conf (Optional device-specific configuration file. High priority)
 |   |   |   |-> xautopresets.log  (Device-specific log file)
 |   |   |
+|   |   |-> active             (Record of currently active profiles on all devices)
 |   |   |-> xautopresets.conf  (Global configuration file. Lowest priority)    
 |   |   |-> xautopresets.log   (Global log file)
 |   | 
