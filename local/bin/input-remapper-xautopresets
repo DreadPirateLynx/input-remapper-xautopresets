@@ -33,7 +33,7 @@ Help ()
     echo -e "-v        Display version number\n"
     echo -e "Valid arguments:"
     echo -e "[enable|disable|restart|start|status|stop]\n\truns systemctl --user [command] $parent_app_name-$app_name.service\n"
-    echo "Please use 'systemctl --user start input-remapper-xautopresets.service' to run this program"
+    echo "Please use 'systemctl --user start input-remapper-xautopresets.service' to run this program or provide a valid argument"
 }
 
 while getopts :hv option; do
