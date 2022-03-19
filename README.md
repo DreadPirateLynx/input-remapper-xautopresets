@@ -43,7 +43,7 @@ Default behavior is to leave configuration files in place
 -a|A|c|C    Remove all cofiguration files (including EVERYTHING in all 'classes/' directories) in addition to program files.
 -h          Display this menu
 ```
-`uninstall` will require additional confirmation before removing configuration files when run with any of `-aAcC`
+`uninstall` requires additional confirmation before removing configuration files when run with any of `-aAcC`
 
 ## Configuration
 Once installed, input-remapper-xautopresets uses the following file tree:
