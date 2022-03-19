@@ -18,7 +18,7 @@ Use `systemctl --user [enable|disable|restart|start|status|stop] input-remapper-
 
 Alternatively, `input-remapper-xautopresets` can be used directly as an interface for `systemctl`:
 ```
-input-remapper-xautopresets v0.9.6
+input-remapper-xautopresets v0.9.7
 Automatic input-remapper preset manager for systems with access to xdotools
 
 Valid options:
