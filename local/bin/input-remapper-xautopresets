@@ -359,11 +359,14 @@ while [ true ]; do
             TimeStamp "Active Presets:" "$app_log"
 
             while IFS=  read -r -d $'\n'; do
+
                 DEVICE=${REPLY%*=*}
                 PRESET=${REPLY#*=*}
                 TimeStamp "[$DEVICE]=$PRESET" "$app_log"
-                active_presets[$DEVICE]="$PRESET"
-            done < <(cat < "$active_presets_log")
+                if [ "$DEVICE" != "" ]; then
+                    active_presets["$DEVICE"]="$PRESET"
+                fi
+            done < "$active_presets_log"
 
             rm "$active_presets_log"
 
