@@ -1,0 +1,106 @@
+#!/bin/bash
+
+app_name="${0#*/bin/*}"
+app_name="${app_name%*-config}"
+app_dir=~/.config/input-remapper
+config_file="$app_name.ini"
+
+cd "$app_dir"
+
+Help ()
+{
+    echo "Placeholder"
+}
+
+GenerateConfig ()
+{
+    touch "$config_file"
+    echo "[PROGRAM]
+; These settings control the behavior of xautopresets.
+; Valid settings shown in parentheses; first shown is default.
+
+_EXECUTION=_PARALLEL
+; ( _PARALLEL | _SERIAL )
+; Controls whether device configuration occurs in parallel or in series.
+; Parallel processing has increased overhead, so depending on the number
+; of devices you're controlling, it may be quicker to disable it.
+
+_NOTSET=_STOP
+; ( _STOP | _IGNORE )
+; Final fallback behaivor if appropriate preset can't be found
+
+_SECTIONPRIORITY=_DEVICE
+; ( _DEVICE | _CLASS )
+; Controls whether '[<DEVICENAME>]' or '[GLOBAL:<CLASSNAME>]'
+; section has higher priority
+
+_DEFAULTPRIORITY=_SECTION
+; ( _SECTION | _CLASS )
+; Controls whether xautopresets applies a default preset from a higher
+; priority section before a class-name match from a lower one
+
+
+[IGNORE]
+; Uncommented devices listed in this section will not be managed by xautopresets
+" > "$config_file"
+
+    dev_list=""
+
+    for device in presets/*; do
+        dev_list+="; ${device#*presets/*}\n"
+    done
+
+    while IFS= read -r -d $'\n'; do
+        if [ ! "$(grep "$REPLY" <<< "$dev_list")" ]; then
+            dev_list+="$REPLY\n"
+        fi
+    done < <(input-remapper-control --list 2>> /dev/null)
+
+    echo -e "$dev_list" >> "$config_file"
+
+    echo -e "\n[GLOBAL]" >> "$config_file"
+    if [ -f "$app_name.conf" ]; then
+        cat "$app_name.conf" | sed 's/_default/_DEFAULT/g; s/_Bypass/_STOP/g' >> "$config_file"
+    else
+        echo -e "_DEFAULT=_STOP\nInput-remapper-gtk=_STOP" >> "$config_file"
+    fi
+
+    for class in classes/*.conf; do
+        class="${class%*.conf}"
+        if [ -f "$class.conf" ]; then
+            echo -e "\n\n[GLOBAL:${class#classes/*}]" >> "$config_file"
+            cat "$class.conf" | sed 's/_default/_DEFAULT/g; s/_Bypass/_STOP/g' >> "$config_file"
+        fi
+    done
+
+    for device in presets/*; do
+        cd "$device"
+        echo -e "\n\n[${device#presets/*}]" >> ../../"$config_file"
+        [ -f "$app_name.conf" ] && cat "$app_name.conf" | sed 's/_default/_DEFAULT/g; s/_Bypass/_STOP/g' >> ../../"$config_file"
+        for class in classes/*.conf; do
+            class="${class%*.conf}"
+            if [ -f "$class.conf" ]; then
+                echo -e "\n\n[${device#presets/*}:${class#classes/*}]" >> ../../"$config_file"
+                cat "$class.conf" | sed 's/_default/_DEFAULT/g; s/_Bypass/_STOP/g' >> ../../"$config_file"
+            fi
+        done
+        cd ../..
+    done
+}
+
+while getopts :hn option; do
+    case "${option}" in
+
+        h)  Help
+            exit ;;
+
+        n)  GenerateConfig
+            exit ;;
+
+        ?)  echo "invalid option \"-${OPTARG}\""
+            Help
+            exit ;;
+
+    esac
+done
+
