@@ -134,8 +134,8 @@ _DEFAULTPRIORITY=_SECTION
 #### [IGNORE]
 Uncommented devices listed in this section will not be managed by xautopresets
 
-#### [GLOBAL]
-This section contains a list of window classes paired with a list of input-remapper preset names. Preset names should not include the `.json` extension.
+#### [GLOBAL] & [DEVICE]
+These sections contain a list of window classes paired with a list of input-remapper preset names. Preset names should not include the `.json` extension.
 ```
 exampleWindowclass1=Example Preset Name 1
 exampleWindowclass2=Example Preset Name 1
@@ -160,8 +160,8 @@ Input-remapper-gtk=_STOP
   
 Use `input-remapper-xautopresets getwindowinfo` or `xdotool selectwindow getwindowclassname` to get window class names for your applications
 
-#### [(GLOBAL|<DEVICENAME>):<CLASSNAME>]
-This section contains a list of window titles paried with a list of input-remapper preset names. It is intended to give the user the ability to have more than one configured preset for a given application, and change between them based on the window's name as shown in the title bar. Same basic syntax as `xautopresets.conf`, except:
+#### [GLOBAL:{CLASSNAME}] & [{DEVICENAME}:{CLASSNAME}]
+These sections contain a list of window titles paried with a list of input-remapper preset names. It is intended to give the user the ability to have more than one configured preset for a given application, and change between them based on the window's name as shown in the title bar. Same basic syntax as `xautopresets.conf`, except:
 ```
 example Window Title=Example Preset Name
 ```
