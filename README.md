@@ -76,7 +76,7 @@ Once installed, input-remapper-xautopresets uses the following file tree:
 |-> .config/
 |   |-> input-remapper/
 |   |   |-> logs/
-|   |   |   |-> active              (Temporary record of currently active profiles on all devices)
+|   |   |   |-> .active              (Temporary record of currently active profiles on all devices)
 |   |   |   |-> [Device Name].log   (Device-specific log file)
 |   |   |   |-> xautopresets.log    (Global log file)
 |   |   |
