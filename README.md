@@ -10,15 +10,16 @@ Automatically changes the active input-remapper preset for each connected device
   
 The installer will copy all necessary files to their correct locations, and enable/start the required service  
 
-It is safe to run `install` over a previously installed/currently running version
+It is safe to run `install` over any previously installed/currently running version. If an update is incompatible with previous configuration files, `install` will automatically import and convert them without modifying the original files.
 
 ## Usage
+### input-remapper-xautopresets
 
 Use `systemctl --user [enable|disable|restart|start|status|stop] input-remapper-xautopresets.service` to change service state
 
 Alternatively, `input-remapper-xautopresets` can be used directly as an interface for `systemctl`:
 ```
-input-remapper-xautopresets v0.9.7
+input-remapper-xautopresets v1.0.0
 Automatic input-remapper preset manager for systems with access to xdotools
 
 Valid options:
@@ -40,17 +41,33 @@ Either provide a vaild argument or envoke 'systemctl' directly.
 ```
 `input-remapper-xautopresets` will not allow you to run it directly. It must be controlled through `systemctl`, either directly, or through the interface provided by `input-remapper-xautopresets`
 
+### xautopresets-config
+Currently only capable of creating a new xautopresets.ini file, generating it from imported .conf data from previous versions if it exists, or else generating a default one if not.
+```
+xautopresets-config v0.1.5
+Configuration file manipulator for xautopresets
+
+Valid options:
+-h        Display this table
+-n        Generate new default xautopresets.ini file,
+          importing data from previous versions if available
+```
+
 ## Uninstallation
 `/path/to/download/input-remapper-xautopresets/uninstall`
 ```
 input-remapper-xautopresets uninstaller
 
-Default behavior is to leave configuration files in place
+Uninstaller MUST be passed one or more options; it will only remove what you tell it
 
--a|A|c|C    Remove all cofiguration files (including EVERYTHING in all 'classes/' directories) in addition to program files.
+-c          Remove configuration file, 'xautopresets.ini'
 -h          Display this menu
+-l          Remove all log files
+-s          Remove script and service files
+-o          Remove all configuration files from old (pre-1.0) versions
+
 ```
-`uninstall` requires additional confirmation before removing configuration files when run with any of `-aAcC`
+`uninstall` requires additional confirmation for each category in case you made a mistake. `uninstall -clso` will remove everything
 
 ## Configuration
 Once installed, input-remapper-xautopresets uses the following file tree:
@@ -58,37 +75,67 @@ Once installed, input-remapper-xautopresets uses the following file tree:
 ~/
 |-> .config/
 |   |-> input-remapper/
-|   |   |-> classes/
-|   |   |   |-> [Class Name].conf  (Optional global class-specific configuration files. Medium priority)
+|   |   |-> logs/
+|   |   |   |-> active              (Temporary record of currently active profiles on all devices)
+|   |   |   |-> [Device Name].log   (Device-specific log file)
+|   |   |   |-> xautopresets.log    (Global log file)
 |   |   |
-|   |   |-> presets/[Device Name]/
-|   |   |   |-> classes/
-|   |   |   |   |-> [Class Name].conf (Optional device-and-class-specific configuration files. Highest priority)
-|   |   |   |
-|   |   |   |-> xautopresets.conf (Optional device-specific configuration file. High priority)
-|   |   |   |-> xautopresets.log  (Device-specific log file)
-|   |   |
-|   |   |-> active             (Record of currently active profiles on all devices)
-|   |   |-> xautopresets.conf  (Global configuration file. Lowest priority)    
-|   |   |-> xautopresets.log   (Global log file)
+|   |   |-> xautopresets.ini    (Configuration file)
 |   | 
 |   |-> systemd/user/
 |       |-> input-remapper-xautopresets.service (systemd user service file)
 |     
 |-> .local/bin/
     |-> input-remapper-xautopresets (#!/bin/bash core script)
+    |-> xautopresets-config         (#!/bin/bash config-file manipulation script)
 ```
-### Configuration File Priority
-`input-remapper-xautopresets` will read through each applicable configuration file in order of increasing priority as follows:
-- Global `xautopresets.conf`
-- Global `[Class Name].conf`
-- Device `xautopresets.conf`
-- Device `[Class Name].conf`
+### Reserved Values
+`_DEFAULT` is a window class used internally by the script. The preset assigned to this class will be loaded any time no other preset is configured, or if the configured preset cannot be located.
 
-Later files will override settings in earlier ones. This will allow users to avoid having to repeat settings from lower priority files in higher priority ones.
+`_STOP` is a preset name used internally by the script. This is the preset that will disable `input-remapper` injection.
 
-### xautopresets.conf
-This file contains a list of window classes paired with a list of input-remapper preset names. Preset names should not include the `.json` extension.
+`_IGNORE` is a prset name used internally by the script. This preset tells `xautopresets` to ignore the window change and do nothing.
+
+### xautopreset.ini
+Typical .ini format with section headers in square brackets ('[]'), and semicolon comments (';')
+
+
+##### A Note on how the script works
+For every window change, there are a total of four (4) configuration sections that may be relevant to each device should they exist: `[GLOBAL]`, `[GLOBAL:<CLASSNAME>]`, `[<DEVICENAME>]`, & `[<DEVICENAME>:<CLASSNAME>]`. `xautopresets` will read through these sections in increasing order of priority to generate a combined list of the complete contents of all four sections. `[GLOBAL]` is the lowest priority and read first. `[<DEVICENAME>:<CLASSNAME>]` is the highest and read last. The priority of the other two sections is controlled with the `_SECTIONPRIORITY` setting in the `[PROGRAM]` section. After this list is generated, it will be trimmed to include only `_DEFAULT`, `<CLASSNAME>` and `<WINDOWWTITLE>` matches, sorted based on the `_DEFAULTPRIORITY` setting, and finally reversed. `xautopresets` then checks the list for the first preset that exists on disk and invokes `input-remapper-control` to set the device to it.
+
+#### [PROGRAM]
+```
+; These settings control the behavior of xautopresets.
+; Valid settings shown in parentheses; first shown is default.
+
+_EXECUTION=_PARALLEL
+; ( _PARALLEL | _SERIAL )
+; Controls whether device configuration occurs in parallel or in series.
+; Parallel processing has increased overhead, so depending on the number
+; of devices you're controlling, it may be quicker to disable it.
+
+_NOTSET=_STOP
+; ( _STOP | _IGNORE )
+; Final fallback behaivor if appropriate preset can't be found
+
+_SECTIONPRIORITY=_DEVICE
+; ( _DEVICE | _CLASS )
+; Controls whether '[<DEVICENAME>]' or '[GLOBAL:<CLASSNAME>]'
+; section has higher priority
+
+_DEFAULTPRIORITY=_SECTION
+; ( _SECTION | _CLASS )
+; Controls whether xautopresets applies a default preset from a higher
+; priority section before a class-name match from a lower one.
+; Setting this to _CLASS means a <CLASSNAME> match in [GLOBAL] will be
+; preferred over a _DEFAULT match in [<DEVICENAME>:<CLASSNAME>]
+```
+
+#### [IGNORE]
+Uncommented devices listed in this section will not be managed by xautopresets
+
+#### [GLOBAL]
+This section contains a list of window classes paired with a list of input-remapper preset names. Preset names should not include the `.json` extension.
 ```
 exampleWindowclass1=Example Preset Name 1
 exampleWindowclass2=Example Preset Name 1
@@ -103,27 +150,24 @@ exampleWindow*=preset3
 exampleWindowClass?=preset5
 exampleWindowClass8=preset6
 ```
- A default global file is generated during installation or if it can't be found. It contains the following:  
+ A default global file is generated during installation or if it can't be found. It contains the following, unless data from previous version .conf files was imported:
 ```
-_default=_Bypass
-Input-remapper-gtk=_Bypass
+_DEFAULT=_STOP
+Input-remapper-gtk=_STOP
 ```
-`_default` is a window class used internally by the script. The preset assigned to this class will be loaded any time no other preset is configured, or if the configured preset cannot be located. You can change the preset assigned here to whatever you want.  
-  
-`_Bypass` is likewise a preset name used internally by the script. This is the preset that will disable `input-remapper` injection, and will be used in place of the `_default` preset if it can't be found or isn't configured
   
 `Input-remapper-gtk` is the window class name for `input-remapper`'s gui configuration tool. Injection needs to be stopped to make changes, so this seemed appropriate. Feel free to change.  
   
 Use `input-remapper-xautopresets getwindowinfo` or `xdotool selectwindow getwindowclassname` to get window class names for your applications
 
-### [Class Name].conf
-This file contains a list of window titles paried with a list of input-remapper preset names. It is intended to give the user the ability to have more than one configured preset for a given application, and change between them based on the window's name as shown in the title bar. Same basic syntax as `xautopresets.conf`, except:
+#### [(GLOBAL|<DEVICENAME>):<CLASSNAME>]
+This section contains a list of window titles paried with a list of input-remapper preset names. It is intended to give the user the ability to have more than one configured preset for a given application, and change between them based on the window's name as shown in the title bar. Same basic syntax as `xautopresets.conf`, except:
 ```
 example Window Title=Example Preset Name
 ```
 Use `input-remapper-xautopresets getwindowinfo` or `xdotool selectwindow getwindowname` to get window title. Wildcards and spaces supported just like with `xautopresets.conf`
 
-#### Example firedragon.conf
+##### Example [GLOBAL:firedragon]
 ```
 _default=FireDragon
 *- YouTube -*=Media

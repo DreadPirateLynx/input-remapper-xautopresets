@@ -2,6 +2,8 @@
 
 app_name="${0#*/bin/*}"
 app_name="${app_name%*-config}"
+desc="Configuration file manipulator for xautopresets"
+version=0.1.5
 app_dir=~/.config/input-remapper
 config_file="$app_name.ini"
 
@@ -9,7 +11,13 @@ cd "$app_dir"
 
 Help ()
 {
-    echo "Placeholder"
+    echo "$app_name-config v$version"
+    echo -e "$desc\n"
+
+    echo "Valid options:"
+    echo "-h        Display this table"
+    echo "-n        Generate new default xautopresets.ini file,"
+    echo "          importing data from previous versions if available"
 }
 
 GenerateConfig ()
@@ -37,7 +45,9 @@ _SECTIONPRIORITY=_DEVICE
 _DEFAULTPRIORITY=_SECTION
 ; ( _SECTION | _CLASS )
 ; Controls whether xautopresets applies a default preset from a higher
-; priority section before a class-name match from a lower one
+; priority section before a class-name match from a lower one.
+; Setting this to _CLASS means a <CLASSNAME> match in [GLOBAL] will be
+; preferred over a _DEFAULT match in [<DEVICENAME>:<CLASSNAME>]
 
 
 [IGNORE]
