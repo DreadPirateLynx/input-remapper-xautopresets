@@ -41,18 +41,18 @@ if [ -d "$working_dir" ]; then
                 exit))
     fi
 
-    # Copy script to user's local /bin directory
+    # Copy scripts to user's local /bin directory
     echo "Copying automation script ($parent_app-$app_name) to $script_dir..."
     cp -r local/bin/ ~/.local
     echo "Done!"
     echo "Making executable..."
     chmod u+x "$script_dir/$parent_app-$app_name"
+    chmod u+x "$script_dir/$parent_app-$app_name-config"
 
     # Create global configuration file and populate with default values if one doesn't already exist
-    if [ ! -f $working_dir/$app_name.conf ]; then
-        echo "Creating global configuration file ($app_name.conf) in $working_dir..."
-        touch $working_dir/$app_name.conf
-        echo -e "$default_class=$bypass_preset\n$input_remapper_ui=$bypass_preset" > "$working_dir/$app_name.conf"
+    if [ ! -f $working_dir/$app_name.ini ]; then
+        echo "Creating configuration file ($app_name.ini) in $working_dir..."
+        xautopresets-config -n
         echo "Done!"
     fi
 
