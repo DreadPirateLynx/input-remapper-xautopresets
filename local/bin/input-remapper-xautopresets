@@ -6,7 +6,7 @@
 
 parent_app_name=input-remapper
 app_name=${0#*$parent_app_name-*}
-version="1.0.0"
+version="1.0.1"
 desc="Automatic input-remapper preset manager for systems with access to xdotools"
 app_dir=~/.config/$parent_app_name
 log_dir="$app_dir/logs"
@@ -332,6 +332,6 @@ default_priority_setting=
 
                 echo -e "\n\n---------------------------------------------------------------\n\n" >> "$app_log"
         fi
-        sleep .05s
+        sleep .1s
     done
 }
