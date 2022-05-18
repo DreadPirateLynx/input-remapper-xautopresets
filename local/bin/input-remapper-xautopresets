@@ -7,7 +7,7 @@
 parent_app_name=input-remapper
 app_name=${0#*$parent_app_name-*}
 version="1.1.0"
-desc="Automatic input-remapper preset manager for systems with access to xdotools"
+desc="Automatic input-remapper preset manager for systems with access to xdotools and xprop"
 app_dir=~/.config/$parent_app_name
 log_dir="$app_dir/logs"
 config_file="$app_dir/$app_name.ini"

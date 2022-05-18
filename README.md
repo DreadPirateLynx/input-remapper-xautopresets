@@ -1,5 +1,5 @@
 # input-remapper-xautopresets
-## Automatic input-remapper preset manager for systems with access to xdotools
+## Automatic input-remapper preset manager for systems with access to xdotools and xprop
 Automatically changes the active input-remapper preset for each connected device based on active window's class, with optional support for further differentiating between different windows of the same class based on the window's title. Devices can be configured individually, otherwise they will default to the global configuration file. `input-remapper-xautopresets` makes use of `input-remapper-control` to track devices, so it's aware when devices are connected/disconnected. Configuration files also support live-editing, so no need to restart after making changes; just save the file and xautopresets will know about the changes.
 
 ## Installation
