@@ -6,7 +6,7 @@
 
 parent_app_name=input-remapper
 app_name=${0#*$parent_app_name-*}
-version="1.0.1"
+version="1.1.0"
 desc="Automatic input-remapper preset manager for systems with access to xdotools"
 app_dir=~/.config/$parent_app_name
 log_dir="$app_dir/logs"
@@ -68,9 +68,9 @@ if [ $# -gt 0 ]; then
 
             enable|disable|restart|start|status|stop)   systemctl --user $command "$parent_app_name-$app_name.service" ;;
 
-            getwindowinfo)  window=$(xdotool selectwindow)
-                            active_win_class=$(xdotool getwindowclassname $window)
-                            active_win_title=$(xdotool getwindowname $window)
+            getwindowinfo)  window=$(xprop -id $(xdotool selectwindow))
+                            active_win_class=$(grep "WM_CLASS" <<< "$window" | sed -r "s/.*,\ \"//; s/\".*$//")
+                            active_win_title=$(grep "_NET_WM_NAME(UTF8_STRING)" <<< "$window" | sed -r "s/.*=\ \"//; s/\".*$//")
 
                             echo "Class: $active_win_class"
                             echo "Title: $active_win_title" ;;
@@ -277,8 +277,10 @@ default_priority_setting=
 
     while [ true ]; do
 
-        class=$(xdotool getactivewindow getwindowclassname 2> /dev/null)
-        title=$(xdotool getactivewindow getwindowname 2> /dev/null)
+        window=$(xprop -id $(xdotool getactivewindow))
+
+        class=$(grep "WM_CLASS" <<< "$window" | sed -r "s/.*=\ \"//; s/\".*$//" 2>> "$app_log")
+        title=$(grep "_NET_WM_NAME(UTF8_STRING)" <<< "$window" | sed -r "s/.*=\ \"//; s/\".*$//" 2>> "$app_log")
 
         if [ "$class" != "$last_class" ] || [ "$title" != "$last_title" ]; then
 
