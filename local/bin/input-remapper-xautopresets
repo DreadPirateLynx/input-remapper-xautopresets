@@ -7,7 +7,7 @@
 parent_app_name=input-remapper
 app_name=${0#*$parent_app_name-*}
 version="1.1.1"
-desc="Automatic input-remapper preset manager for systems with access to xdotools and xprop"
+desc="Automatic input-remapper preset manager for systems with access to xdotool and xprop"
 app_dir=~/.config/$parent_app_name
 log_dir="$app_dir/logs"
 config_file="$app_dir/$app_name.ini"
@@ -330,7 +330,7 @@ default_priority_setting=
                 configuration=()
                 configuration["$active_section"]="$(cat "$active_presets")"
                 echo -e "${configuration["$active_section"]}" >> "$app_log"
-                rm "$active_presets"
+                #rm "$active_presets"
 
                 echo -e "\n\n---------------------------------------------------------------\n\n" >> "$app_log"
         fi
