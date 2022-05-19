@@ -330,7 +330,7 @@ default_priority_setting=
                 configuration=()
                 configuration["$active_section"]="$(cat "$active_presets")"
                 echo -e "${configuration["$active_section"]}" >> "$app_log"
-                #rm "$active_presets"
+                rm "$active_presets"
 
                 echo -e "\n\n---------------------------------------------------------------\n\n" >> "$app_log"
         fi
