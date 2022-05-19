@@ -1,6 +1,6 @@
 # input-remapper-xautopresets
 ## Automatic input-remapper preset manager for systems with access to xdotool and xprop
-Automatically changes the active input-remapper preset for each connected device based on active window's class, with optional support for further differentiating between different windows of the same class based on the window's title. Devices can be configured individually, otherwise they will default to the global configuration file. `input-remapper-xautopresets` makes use of `input-remapper-control` to track devices, so it's aware when devices are connected/disconnected. Configuration files also support live-editing, so no need to restart after making changes; just save the file and xautopresets will know about the changes.
+Automatically changes the active input-remapper preset for each connected device based on active window's class, with optional support for further differentiating between different windows of the same class based on the window's title. Devices can be configured individually, otherwise they will default to the global configuration. `input-remapper-xautopresets` makes use of `input-remapper-control` to track devices, so it's aware when devices are connected/disconnected. The configuration file also support live-editing, so no need to restart after making changes; just save the file and xautopresets will know about the changes.
 
 ## Installation
   
@@ -19,8 +19,8 @@ Use `systemctl --user [enable|disable|restart|start|status|stop] input-remapper-
 
 Alternatively, `input-remapper-xautopresets` can be used directly as an interface for `systemctl`:
 ```
-input-remapper-xautopresets v1.0.0
-Automatic input-remapper preset manager for systems with access to xdotools
+input-remapper-xautopresets v1.1.2
+Automatic input-remapper preset manager for systems with access to xdotool
 
 Valid options:
 -h        Display this table
@@ -76,7 +76,7 @@ Once installed, input-remapper-xautopresets uses the following file tree:
 |-> .config/
 |   |-> input-remapper/
 |   |   |-> logs/
-|   |   |   |-> .active              (Temporary record of currently active profiles on all devices)
+|   |   |   |-> .active             (Temporary record of currently active profiles on all devices)
 |   |   |   |-> [Device Name].log   (Device-specific log file)
 |   |   |   |-> xautopresets.log    (Global log file)
 |   |   |
@@ -94,14 +94,24 @@ Once installed, input-remapper-xautopresets uses the following file tree:
 
 `_STOP` is a preset name used internally by the script. This is the preset that will disable `input-remapper` injection.
 
-`_IGNORE` is a prset name used internally by the script. This preset tells `xautopresets` to ignore the window change and do nothing.
+`_IGNORE` is a preset name used internally by the script. This preset tells `xautopresets` to ignore the window change and do nothing.
 
 ### xautopreset.ini
 Typical .ini format with section headers in square brackets ('[]'), and semicolon comments (';')
 
 
 ##### A Note on how the script works
-For every window change, there are a total of four (4) configuration sections that may be relevant to each device should they exist: `[GLOBAL]`, `[GLOBAL:<CLASSNAME>]`, `[<DEVICENAME>]`, & `[<DEVICENAME>:<CLASSNAME>]`. `xautopresets` will read through these sections in increasing order of priority to generate a combined list of the complete contents of all four sections. `[GLOBAL]` is the lowest priority and read first. `[<DEVICENAME>:<CLASSNAME>]` is the highest and read last. The priority of the other two sections is controlled with the `_SECTIONPRIORITY` setting in the `[PROGRAM]` section. After this list is generated, it will be trimmed to include only `_DEFAULT`, `<CLASSNAME>` and `<WINDOWWTITLE>` matches, sorted based on the `_DEFAULTPRIORITY` setting, and finally reversed. `xautopresets` then checks the list for the first preset that exists on disk and invokes `input-remapper-control` to set the device to it.
+For every window change, there are a total of four (4) configuration sections that may be relevant to each device should they exist: `[GLOBAL]`, `[GLOBAL:<CLASSNAME>]`, `[<DEVICENAME>]`, & `[<DEVICENAME>:<CLASSNAME>]`. For each device it is managing, `xautopresets` will:
+1. Grab these four sections
+2. Order them in a list of increasing priority
+    - `[GLOBAL]` is the lowest priority and read first.
+    - `[<DEVICENAME>:<CLASSNAME>]` is the highest and read last.
+    - The priority of the other two sections is controlled with the `_SECTIONPRIORITY` setting in the `[PROGRAM]` section.
+3. Trim the list to include only `_DEFAULT`, `<CLASSNAME>` and `<WINDOWWTITLE>` matches.
+4. Sort it based on the `_DEFAULTPRIORITY` setting.
+5. Reverse the list.
+6. Check it for the first preset that exists on disk.
+7. Invoke `input-remapper-control` to set the device to it.
 
 #### [PROGRAM]
 ```
@@ -158,14 +168,14 @@ Input-remapper-gtk=_STOP
   
 `Input-remapper-gtk` is the window class name for `input-remapper`'s gui configuration tool. Injection needs to be stopped to make changes, so this seemed appropriate. Feel free to change.  
   
-Use `input-remapper-xautopresets getwindowinfo` or `xdotool selectwindow getwindowclassname` to get window class names for your applications
+Use `input-remapper-xautopresets getwindowinfo` to get window class names for your applications. It is highly recommended that you copy and paste from here into your .ini file.
 
 #### [GLOBAL:{CLASSNAME}] & [{DEVICENAME}:{CLASSNAME}]
 These sections contain a list of window titles paried with a list of input-remapper preset names. It is intended to give the user the ability to have more than one configured preset for a given application, and change between them based on the window's name as shown in the title bar. Same basic syntax as `xautopresets.conf`, except:
 ```
 example Window Title=Example Preset Name
 ```
-Use `input-remapper-xautopresets getwindowinfo` or `xdotool selectwindow getwindowname` to get window title. Wildcards and spaces supported just like with `xautopresets.conf`
+Use `input-remapper-xautopresets getwindowinfo` to get window titles. Wildcards and spaces supported just like with `xautopresets.conf`, and once again, copy/pasting from here is advised.
 
 ##### Example [GLOBAL:firedragon]
 ```
