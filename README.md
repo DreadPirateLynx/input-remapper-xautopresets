@@ -96,7 +96,7 @@ Once installed, input-remapper-xautopresets uses the following file tree:
 
 `_IGNORE` is a preset name used internally by the script. This preset tells `xautopresets` to ignore the window change and do nothing.
 
-### xautopreset.ini
+### xautopresets.ini
 Typical .ini format with section headers in square brackets ('[]'), and semicolon comments (';')
 
 
@@ -175,7 +175,7 @@ These sections contain a list of window titles paried with a list of input-remap
 ```
 example Window Title=Example Preset Name
 ```
-Use `input-remapper-xautopresets getwindowinfo` to get window titles. Wildcards and spaces supported just like with `xautopresets.conf`, and once again, copy/pasting from here is advised.
+Use `input-remapper-xautopresets getwindowinfo` to get window titles, and once again, copy/pasting from here is advised. Wildcards and spaces supported just like with `xautopresets.conf`.
 
 ##### Example [GLOBAL:firedragon]
 ```
