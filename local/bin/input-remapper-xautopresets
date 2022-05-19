@@ -6,7 +6,7 @@
 
 parent_app_name=input-remapper
 app_name=${0#*$parent_app_name-*}
-version="1.1.0"
+version="1.1.1"
 desc="Automatic input-remapper preset manager for systems with access to xdotools and xprop"
 app_dir=~/.config/$parent_app_name
 log_dir="$app_dir/logs"
@@ -279,7 +279,7 @@ default_priority_setting=
 
         window=$(xprop -id $(xdotool getactivewindow))
 
-        class=$(grep "WM_CLASS" <<< "$window" | sed -r "s/.*=\ \"//; s/\".*$//" 2>> "$app_log")
+        class=$(grep "WM_CLASS" <<< "$window" | sed -r "s/.*,\ \"//; s/\".*$//" 2>> "$app_log")
         title=$(grep "_NET_WM_NAME(UTF8_STRING)" <<< "$window" | sed -r "s/.*=\ \"//; s/\".*$//" 2>> "$app_log")
 
         if [ "$class" != "$last_class" ] || [ "$title" != "$last_title" ]; then
