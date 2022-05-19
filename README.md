@@ -111,7 +111,7 @@ For every window change, there are a total of four (4) configuration sections th
 4. Sort it based on the `_DEFAULTPRIORITY` setting.
 5. Reverse the list.
 6. Check it for the first preset that exists on disk (including the internal presets, `_STOP` and `_IGNORE`).
-7. Invoke `input-remapper-control` to set the device to it (or ignore the change if necessary/already set).
+7. Invoke `input-remapper-control` to set the device to it (or ignore the change if appropriate).
 
 #### [PROGRAM]
 ```
