@@ -179,7 +179,7 @@ Use `input-remapper-xautopresets getwindowinfo` to get window titles, and once a
 
 ##### Example [GLOBAL:firedragon]
 ```
-_default=FireDragon
+_DEFAULT=FireDragon
 *- YouTube -*=Media
 ```
 In this example, when using the FireDragon web browser (Class Name `firedragon`), any time a browser tab whose title includes the string `- YouTube -` is active, `Media.json` will be enabled on this device. For all other tabs, `FireDragon.json` will be enabled
