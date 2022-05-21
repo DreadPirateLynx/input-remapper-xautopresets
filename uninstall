@@ -71,7 +71,7 @@ RemoveScript ()
     fi
 
     if [ -f "$config_script" ]; then
-        rm -v "$script_file" ||
+        rm -v "$config_script" ||
             ( echo "ERROR: Failed!" && failure=true )
     fi
 }

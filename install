@@ -47,7 +47,7 @@ if [ -d "$working_dir" ]; then
     echo "Done!"
     echo "Making executable..."
     chmod u+x "$script_dir/$parent_app-$app_name"
-    chmod u+x "$script_dir/$parent_app-$app_name-config"
+    chmod u+x "$script_dir/$app_name-config"
 
     # Create global configuration file and populate with default values if one doesn't already exist
     if [ ! -f $working_dir/$app_name.ini ]; then
